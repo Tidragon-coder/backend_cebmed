@@ -1,9 +1,17 @@
 ﻿import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { client } from "../db";
+import { prisma } from "../lib/prisma";
 
 const SECRET = process.env.JWT_SECRET;
+
+type AuthenticatedRequest = Request & {
+  user?: {
+    id?: number;
+    email?: string;
+    name?: string;
+  };
+};
 
 const isValidDate = (value: string): boolean => {
   const date = new Date(value);
@@ -35,21 +43,38 @@ export const register = async (req: Request, res: Response) => {
     const normalizedEmail = email.trim().toLowerCase();
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const result = await client.query(
-      `INSERT INTO users (first_name, last_name, date_of_birth, email, phone, password, picture)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id, first_name, last_name, date_of_birth, email, phone, picture, created_at, updated_at, is_active`,
-      [first_name, last_name, date_of_birth, normalizedEmail, phone ?? null, passwordHash, picture ?? null]
-    );
+    const createdUser = await prisma.user.create({
+      data: {
+        first_name,
+        last_name,
+        date_of_birth: new Date(date_of_birth),
+        email: normalizedEmail,
+        phone: phone ?? null,
+        password: passwordHash,
+        picture: picture ?? null,
+      },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        date_of_birth: true,
+        email: true,
+        phone: true,
+        picture: true,
+        created_at: true,
+        updated_at: true,
+        is_active: true,
+      },
+    });
 
     return res.status(201).json({
       message: "User registered successfully",
-      user: result.rows[0],
+      user: createdUser,
     });
   } catch (error: unknown) {
-    const pgError = error as { code?: string };
+    const prismaError = error as { code?: string };
 
-    if (pgError.code === "23505") {
+    if (prismaError.code === "P2002") {
       return res.status(409).json({ message: "Email already exists" });
     }
 
@@ -76,12 +101,16 @@ export const login = async (req: Request, res: Response) => {
   try {
     const normalizedEmail = email.trim().toLowerCase();
 
-    const result = await client.query(
-      "SELECT id, email, first_name, password, is_active FROM users WHERE email = $1 LIMIT 1",
-      [normalizedEmail]
-    );
-
-    const user = result.rows[0];
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: {
+        id: true,
+        email: true,
+        first_name: true,
+        password: true,
+        is_active: true,
+      },
+    });
 
     if (!user || !user.is_active) {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
@@ -102,6 +131,39 @@ export const login = async (req: Request, res: Response) => {
     return res.json({ token });
   } catch (err) {
     console.error("Login error", err);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+export const me = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user?.id) {
+    return res.status(401).json({ message: "Utilisateur non connecte" });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        date_of_birth: true,
+        email: true,
+        phone: true,
+        picture: true,
+        created_at: true,
+        updated_at: true,
+        is_active: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur introuvable" });
+    }
+
+    return res.json({ user });
+  } catch (err) {
+    console.error("Me error", err);
     return res.status(500).json({ message: "Erreur serveur" });
   }
 };

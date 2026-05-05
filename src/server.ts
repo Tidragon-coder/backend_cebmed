@@ -1,4 +1,5 @@
-﻿import app from "./app";
+﻿import "dotenv/config";
+import app from "./app";
 import { connectDB } from "./db";
 
 const PORT = 3000;
