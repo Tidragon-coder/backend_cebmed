@@ -51,7 +51,14 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  User: 'User'
+  User: 'User',
+  Medication: 'Medication',
+  Treatment: 'Treatment',
+  Stock: 'Stock',
+  UserCaregiver: 'UserCaregiver',
+  Intake: 'Intake',
+  Document: 'Document',
+  Appointment: 'Appointment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -85,6 +92,102 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const MedicationScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  type: 'type',
+  description: 'description',
+  manufacturer: 'manufacturer',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type MedicationScalarFieldEnum = (typeof MedicationScalarFieldEnum)[keyof typeof MedicationScalarFieldEnum]
+
+
+export const TreatmentScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  medication_id: 'medication_id',
+  dosage: 'dosage',
+  frequency: 'frequency',
+  start_date: 'start_date',
+  end_date: 'end_date',
+  status: 'status',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type TreatmentScalarFieldEnum = (typeof TreatmentScalarFieldEnum)[keyof typeof TreatmentScalarFieldEnum]
+
+
+export const StockScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  medication_id: 'medication_id',
+  quantity: 'quantity',
+  location: 'location',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type StockScalarFieldEnum = (typeof StockScalarFieldEnum)[keyof typeof StockScalarFieldEnum]
+
+
+export const UserCaregiverScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  caregiver_id: 'caregiver_id',
+  status: 'status',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type UserCaregiverScalarFieldEnum = (typeof UserCaregiverScalarFieldEnum)[keyof typeof UserCaregiverScalarFieldEnum]
+
+
+export const IntakeScalarFieldEnum = {
+  id: 'id',
+  treatment_id: 'treatment_id',
+  taken_at: 'taken_at',
+  status: 'status',
+  note: 'note',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type IntakeScalarFieldEnum = (typeof IntakeScalarFieldEnum)[keyof typeof IntakeScalarFieldEnum]
+
+
+export const DocumentScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  name: 'name',
+  type: 'type',
+  description: 'description',
+  file_path: 'file_path',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+export const AppointmentScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  title: 'title',
+  description: 'description',
+  location: 'location',
+  start_time: 'start_time',
+  end_time: 'end_time',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
 
 
 export const SortOrder = {

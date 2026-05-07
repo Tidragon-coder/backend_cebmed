@@ -44,3 +44,38 @@ export { Prisma }
  * 
  */
 export type User = Prisma.UserModel
+/**
+ * Model Medication
+ * 
+ */
+export type Medication = Prisma.MedicationModel
+/**
+ * Model Treatment
+ * 
+ */
+export type Treatment = Prisma.TreatmentModel
+/**
+ * Model Stock
+ * 
+ */
+export type Stock = Prisma.StockModel
+/**
+ * Model UserCaregiver
+ * 
+ */
+export type UserCaregiver = Prisma.UserCaregiverModel
+/**
+ * Model Intake
+ * 
+ */
+export type Intake = Prisma.IntakeModel
+/**
+ * Model Document
+ * 
+ */
+export type Document = Prisma.DocumentModel
+/**
+ * Model Appointment
+ * 
+ */
+export type Appointment = Prisma.AppointmentModel
