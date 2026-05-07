@@ -36,32 +36,38 @@ export type MedicationSumAggregateOutputType = {
 
 export type MedicationMinAggregateOutputType = {
   id: number | null
+  cisCode: string | null
   name: string | null
-  type: string | null
-  description: string | null
-  manufacturer: string | null
-  created_at: Date | null
-  updated_at: Date | null
+  pharmaceuticalForm: string | null
+  administrationRoutes: string | null
+  marketingStatus: string | null
+  holder: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type MedicationMaxAggregateOutputType = {
   id: number | null
+  cisCode: string | null
   name: string | null
-  type: string | null
-  description: string | null
-  manufacturer: string | null
-  created_at: Date | null
-  updated_at: Date | null
+  pharmaceuticalForm: string | null
+  administrationRoutes: string | null
+  marketingStatus: string | null
+  holder: string | null
+  createdAt: Date | null
+  updatedAt: Date | null
 }
 
 export type MedicationCountAggregateOutputType = {
   id: number
+  cisCode: number
   name: number
-  type: number
-  description: number
-  manufacturer: number
-  created_at: number
-  updated_at: number
+  pharmaceuticalForm: number
+  administrationRoutes: number
+  marketingStatus: number
+  holder: number
+  createdAt: number
+  updatedAt: number
   _all: number
 }
 
@@ -76,32 +82,38 @@ export type MedicationSumAggregateInputType = {
 
 export type MedicationMinAggregateInputType = {
   id?: true
+  cisCode?: true
   name?: true
-  type?: true
-  description?: true
-  manufacturer?: true
-  created_at?: true
-  updated_at?: true
+  pharmaceuticalForm?: true
+  administrationRoutes?: true
+  marketingStatus?: true
+  holder?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type MedicationMaxAggregateInputType = {
   id?: true
+  cisCode?: true
   name?: true
-  type?: true
-  description?: true
-  manufacturer?: true
-  created_at?: true
-  updated_at?: true
+  pharmaceuticalForm?: true
+  administrationRoutes?: true
+  marketingStatus?: true
+  holder?: true
+  createdAt?: true
+  updatedAt?: true
 }
 
 export type MedicationCountAggregateInputType = {
   id?: true
+  cisCode?: true
   name?: true
-  type?: true
-  description?: true
-  manufacturer?: true
-  created_at?: true
-  updated_at?: true
+  pharmaceuticalForm?: true
+  administrationRoutes?: true
+  marketingStatus?: true
+  holder?: true
+  createdAt?: true
+  updatedAt?: true
   _all?: true
 }
 
@@ -193,12 +205,14 @@ export type MedicationGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 
 export type MedicationGroupByOutputType = {
   id: number
+  cisCode: string
   name: string
-  type: string
-  description: string | null
-  manufacturer: string | null
-  created_at: Date
-  updated_at: Date
+  pharmaceuticalForm: string | null
+  administrationRoutes: string | null
+  marketingStatus: string | null
+  holder: string | null
+  createdAt: Date
+  updatedAt: Date
   _count: MedicationCountAggregateOutputType | null
   _avg: MedicationAvgAggregateOutputType | null
   _sum: MedicationSumAggregateOutputType | null
@@ -226,51 +240,59 @@ export type MedicationWhereInput = {
   OR?: Prisma.MedicationWhereInput[]
   NOT?: Prisma.MedicationWhereInput | Prisma.MedicationWhereInput[]
   id?: Prisma.IntFilter<"Medication"> | number
+  cisCode?: Prisma.StringFilter<"Medication"> | string
   name?: Prisma.StringFilter<"Medication"> | string
-  type?: Prisma.StringFilter<"Medication"> | string
-  description?: Prisma.StringNullableFilter<"Medication"> | string | null
-  manufacturer?: Prisma.StringNullableFilter<"Medication"> | string | null
-  created_at?: Prisma.DateTimeFilter<"Medication"> | Date | string
-  updated_at?: Prisma.DateTimeFilter<"Medication"> | Date | string
+  pharmaceuticalForm?: Prisma.StringNullableFilter<"Medication"> | string | null
+  administrationRoutes?: Prisma.StringNullableFilter<"Medication"> | string | null
+  marketingStatus?: Prisma.StringNullableFilter<"Medication"> | string | null
+  holder?: Prisma.StringNullableFilter<"Medication"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Medication"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Medication"> | Date | string
   treatments?: Prisma.TreatmentListRelationFilter
   stocks?: Prisma.StockListRelationFilter
 }
 
 export type MedicationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  cisCode?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  type?: Prisma.SortOrder
-  description?: Prisma.SortOrderInput | Prisma.SortOrder
-  manufacturer?: Prisma.SortOrderInput | Prisma.SortOrder
-  created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
+  pharmaceuticalForm?: Prisma.SortOrderInput | Prisma.SortOrder
+  administrationRoutes?: Prisma.SortOrderInput | Prisma.SortOrder
+  marketingStatus?: Prisma.SortOrderInput | Prisma.SortOrder
+  holder?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   treatments?: Prisma.TreatmentOrderByRelationAggregateInput
   stocks?: Prisma.StockOrderByRelationAggregateInput
 }
 
 export type MedicationWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  cisCode?: string
   AND?: Prisma.MedicationWhereInput | Prisma.MedicationWhereInput[]
   OR?: Prisma.MedicationWhereInput[]
   NOT?: Prisma.MedicationWhereInput | Prisma.MedicationWhereInput[]
   name?: Prisma.StringFilter<"Medication"> | string
-  type?: Prisma.StringFilter<"Medication"> | string
-  description?: Prisma.StringNullableFilter<"Medication"> | string | null
-  manufacturer?: Prisma.StringNullableFilter<"Medication"> | string | null
-  created_at?: Prisma.DateTimeFilter<"Medication"> | Date | string
-  updated_at?: Prisma.DateTimeFilter<"Medication"> | Date | string
+  pharmaceuticalForm?: Prisma.StringNullableFilter<"Medication"> | string | null
+  administrationRoutes?: Prisma.StringNullableFilter<"Medication"> | string | null
+  marketingStatus?: Prisma.StringNullableFilter<"Medication"> | string | null
+  holder?: Prisma.StringNullableFilter<"Medication"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Medication"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Medication"> | Date | string
   treatments?: Prisma.TreatmentListRelationFilter
   stocks?: Prisma.StockListRelationFilter
-}, "id">
+}, "id" | "cisCode">
 
 export type MedicationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  cisCode?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  type?: Prisma.SortOrder
-  description?: Prisma.SortOrderInput | Prisma.SortOrder
-  manufacturer?: Prisma.SortOrderInput | Prisma.SortOrder
-  created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
+  pharmaceuticalForm?: Prisma.SortOrderInput | Prisma.SortOrder
+  administrationRoutes?: Prisma.SortOrderInput | Prisma.SortOrder
+  marketingStatus?: Prisma.SortOrderInput | Prisma.SortOrder
+  holder?: Prisma.SortOrderInput | Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   _count?: Prisma.MedicationCountOrderByAggregateInput
   _avg?: Prisma.MedicationAvgOrderByAggregateInput
   _max?: Prisma.MedicationMaxOrderByAggregateInput
@@ -283,97 +305,115 @@ export type MedicationScalarWhereWithAggregatesInput = {
   OR?: Prisma.MedicationScalarWhereWithAggregatesInput[]
   NOT?: Prisma.MedicationScalarWhereWithAggregatesInput | Prisma.MedicationScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Medication"> | number
+  cisCode?: Prisma.StringWithAggregatesFilter<"Medication"> | string
   name?: Prisma.StringWithAggregatesFilter<"Medication"> | string
-  type?: Prisma.StringWithAggregatesFilter<"Medication"> | string
-  description?: Prisma.StringNullableWithAggregatesFilter<"Medication"> | string | null
-  manufacturer?: Prisma.StringNullableWithAggregatesFilter<"Medication"> | string | null
-  created_at?: Prisma.DateTimeWithAggregatesFilter<"Medication"> | Date | string
-  updated_at?: Prisma.DateTimeWithAggregatesFilter<"Medication"> | Date | string
+  pharmaceuticalForm?: Prisma.StringNullableWithAggregatesFilter<"Medication"> | string | null
+  administrationRoutes?: Prisma.StringNullableWithAggregatesFilter<"Medication"> | string | null
+  marketingStatus?: Prisma.StringNullableWithAggregatesFilter<"Medication"> | string | null
+  holder?: Prisma.StringNullableWithAggregatesFilter<"Medication"> | string | null
+  createdAt?: Prisma.DateTimeWithAggregatesFilter<"Medication"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Medication"> | Date | string
 }
 
 export type MedicationCreateInput = {
+  cisCode: string
   name: string
-  type: string
-  description?: string | null
-  manufacturer?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
+  pharmaceuticalForm?: string | null
+  administrationRoutes?: string | null
+  marketingStatus?: string | null
+  holder?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   treatments?: Prisma.TreatmentCreateNestedManyWithoutMedicationInput
   stocks?: Prisma.StockCreateNestedManyWithoutMedicationInput
 }
 
 export type MedicationUncheckedCreateInput = {
   id?: number
+  cisCode: string
   name: string
-  type: string
-  description?: string | null
-  manufacturer?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
+  pharmaceuticalForm?: string | null
+  administrationRoutes?: string | null
+  marketingStatus?: string | null
+  holder?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   treatments?: Prisma.TreatmentUncheckedCreateNestedManyWithoutMedicationInput
   stocks?: Prisma.StockUncheckedCreateNestedManyWithoutMedicationInput
 }
 
 export type MedicationUpdateInput = {
+  cisCode?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  manufacturer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pharmaceuticalForm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  administrationRoutes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  holder?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   treatments?: Prisma.TreatmentUpdateManyWithoutMedicationNestedInput
   stocks?: Prisma.StockUpdateManyWithoutMedicationNestedInput
 }
 
 export type MedicationUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  cisCode?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  manufacturer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pharmaceuticalForm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  administrationRoutes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  holder?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   treatments?: Prisma.TreatmentUncheckedUpdateManyWithoutMedicationNestedInput
   stocks?: Prisma.StockUncheckedUpdateManyWithoutMedicationNestedInput
 }
 
 export type MedicationCreateManyInput = {
   id?: number
+  cisCode: string
   name: string
-  type: string
-  description?: string | null
-  manufacturer?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
+  pharmaceuticalForm?: string | null
+  administrationRoutes?: string | null
+  marketingStatus?: string | null
+  holder?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type MedicationUpdateManyMutationInput = {
+  cisCode?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  manufacturer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pharmaceuticalForm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  administrationRoutes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  holder?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MedicationUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  cisCode?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  manufacturer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pharmaceuticalForm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  administrationRoutes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  holder?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type MedicationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  cisCode?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  type?: Prisma.SortOrder
-  description?: Prisma.SortOrder
-  manufacturer?: Prisma.SortOrder
-  created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
+  pharmaceuticalForm?: Prisma.SortOrder
+  administrationRoutes?: Prisma.SortOrder
+  marketingStatus?: Prisma.SortOrder
+  holder?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type MedicationAvgOrderByAggregateInput = {
@@ -382,22 +422,26 @@ export type MedicationAvgOrderByAggregateInput = {
 
 export type MedicationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  cisCode?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  type?: Prisma.SortOrder
-  description?: Prisma.SortOrder
-  manufacturer?: Prisma.SortOrder
-  created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
+  pharmaceuticalForm?: Prisma.SortOrder
+  administrationRoutes?: Prisma.SortOrder
+  marketingStatus?: Prisma.SortOrder
+  holder?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type MedicationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  cisCode?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  type?: Prisma.SortOrder
-  description?: Prisma.SortOrder
-  manufacturer?: Prisma.SortOrder
-  created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
+  pharmaceuticalForm?: Prisma.SortOrder
+  administrationRoutes?: Prisma.SortOrder
+  marketingStatus?: Prisma.SortOrder
+  holder?: Prisma.SortOrder
+  createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
 }
 
 export type MedicationSumOrderByAggregateInput = {
@@ -438,23 +482,27 @@ export type MedicationUpdateOneRequiredWithoutStocksNestedInput = {
 }
 
 export type MedicationCreateWithoutTreatmentsInput = {
+  cisCode: string
   name: string
-  type: string
-  description?: string | null
-  manufacturer?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
+  pharmaceuticalForm?: string | null
+  administrationRoutes?: string | null
+  marketingStatus?: string | null
+  holder?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   stocks?: Prisma.StockCreateNestedManyWithoutMedicationInput
 }
 
 export type MedicationUncheckedCreateWithoutTreatmentsInput = {
   id?: number
+  cisCode: string
   name: string
-  type: string
-  description?: string | null
-  manufacturer?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
+  pharmaceuticalForm?: string | null
+  administrationRoutes?: string | null
+  marketingStatus?: string | null
+  holder?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   stocks?: Prisma.StockUncheckedCreateNestedManyWithoutMedicationInput
 }
 
@@ -475,44 +523,52 @@ export type MedicationUpdateToOneWithWhereWithoutTreatmentsInput = {
 }
 
 export type MedicationUpdateWithoutTreatmentsInput = {
+  cisCode?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  manufacturer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pharmaceuticalForm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  administrationRoutes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  holder?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stocks?: Prisma.StockUpdateManyWithoutMedicationNestedInput
 }
 
 export type MedicationUncheckedUpdateWithoutTreatmentsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  cisCode?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  manufacturer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pharmaceuticalForm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  administrationRoutes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  holder?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stocks?: Prisma.StockUncheckedUpdateManyWithoutMedicationNestedInput
 }
 
 export type MedicationCreateWithoutStocksInput = {
+  cisCode: string
   name: string
-  type: string
-  description?: string | null
-  manufacturer?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
+  pharmaceuticalForm?: string | null
+  administrationRoutes?: string | null
+  marketingStatus?: string | null
+  holder?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   treatments?: Prisma.TreatmentCreateNestedManyWithoutMedicationInput
 }
 
 export type MedicationUncheckedCreateWithoutStocksInput = {
   id?: number
+  cisCode: string
   name: string
-  type: string
-  description?: string | null
-  manufacturer?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
+  pharmaceuticalForm?: string | null
+  administrationRoutes?: string | null
+  marketingStatus?: string | null
+  holder?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
   treatments?: Prisma.TreatmentUncheckedCreateNestedManyWithoutMedicationInput
 }
 
@@ -533,23 +589,27 @@ export type MedicationUpdateToOneWithWhereWithoutStocksInput = {
 }
 
 export type MedicationUpdateWithoutStocksInput = {
+  cisCode?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  manufacturer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pharmaceuticalForm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  administrationRoutes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  holder?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   treatments?: Prisma.TreatmentUpdateManyWithoutMedicationNestedInput
 }
 
 export type MedicationUncheckedUpdateWithoutStocksInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  cisCode?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  type?: Prisma.StringFieldUpdateOperationsInput | string
-  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  manufacturer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  pharmaceuticalForm?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  administrationRoutes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  marketingStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  holder?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   treatments?: Prisma.TreatmentUncheckedUpdateManyWithoutMedicationNestedInput
 }
 
@@ -595,12 +655,14 @@ export type MedicationCountOutputTypeCountStocksArgs<ExtArgs extends runtime.Typ
 
 export type MedicationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  cisCode?: boolean
   name?: boolean
-  type?: boolean
-  description?: boolean
-  manufacturer?: boolean
-  created_at?: boolean
-  updated_at?: boolean
+  pharmaceuticalForm?: boolean
+  administrationRoutes?: boolean
+  marketingStatus?: boolean
+  holder?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
   treatments?: boolean | Prisma.Medication$treatmentsArgs<ExtArgs>
   stocks?: boolean | Prisma.Medication$stocksArgs<ExtArgs>
   _count?: boolean | Prisma.MedicationCountOutputTypeDefaultArgs<ExtArgs>
@@ -608,35 +670,41 @@ export type MedicationSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
 
 export type MedicationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  cisCode?: boolean
   name?: boolean
-  type?: boolean
-  description?: boolean
-  manufacturer?: boolean
-  created_at?: boolean
-  updated_at?: boolean
+  pharmaceuticalForm?: boolean
+  administrationRoutes?: boolean
+  marketingStatus?: boolean
+  holder?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["medication"]>
 
 export type MedicationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  cisCode?: boolean
   name?: boolean
-  type?: boolean
-  description?: boolean
-  manufacturer?: boolean
-  created_at?: boolean
-  updated_at?: boolean
+  pharmaceuticalForm?: boolean
+  administrationRoutes?: boolean
+  marketingStatus?: boolean
+  holder?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }, ExtArgs["result"]["medication"]>
 
 export type MedicationSelectScalar = {
   id?: boolean
+  cisCode?: boolean
   name?: boolean
-  type?: boolean
-  description?: boolean
-  manufacturer?: boolean
-  created_at?: boolean
-  updated_at?: boolean
+  pharmaceuticalForm?: boolean
+  administrationRoutes?: boolean
+  marketingStatus?: boolean
+  holder?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
 }
 
-export type MedicationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "type" | "description" | "manufacturer" | "created_at" | "updated_at", ExtArgs["result"]["medication"]>
+export type MedicationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "cisCode" | "name" | "pharmaceuticalForm" | "administrationRoutes" | "marketingStatus" | "holder" | "createdAt" | "updatedAt", ExtArgs["result"]["medication"]>
 export type MedicationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   treatments?: boolean | Prisma.Medication$treatmentsArgs<ExtArgs>
   stocks?: boolean | Prisma.Medication$stocksArgs<ExtArgs>
@@ -653,12 +721,14 @@ export type $MedicationPayload<ExtArgs extends runtime.Types.Extensions.Internal
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
+    cisCode: string
     name: string
-    type: string
-    description: string | null
-    manufacturer: string | null
-    created_at: Date
-    updated_at: Date
+    pharmaceuticalForm: string | null
+    administrationRoutes: string | null
+    marketingStatus: string | null
+    holder: string | null
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["medication"]>
   composites: {}
 }
@@ -1085,12 +1155,14 @@ export interface Prisma__MedicationClient<T, Null = never, ExtArgs extends runti
  */
 export interface MedicationFieldRefs {
   readonly id: Prisma.FieldRef<"Medication", 'Int'>
+  readonly cisCode: Prisma.FieldRef<"Medication", 'String'>
   readonly name: Prisma.FieldRef<"Medication", 'String'>
-  readonly type: Prisma.FieldRef<"Medication", 'String'>
-  readonly description: Prisma.FieldRef<"Medication", 'String'>
-  readonly manufacturer: Prisma.FieldRef<"Medication", 'String'>
-  readonly created_at: Prisma.FieldRef<"Medication", 'DateTime'>
-  readonly updated_at: Prisma.FieldRef<"Medication", 'DateTime'>
+  readonly pharmaceuticalForm: Prisma.FieldRef<"Medication", 'String'>
+  readonly administrationRoutes: Prisma.FieldRef<"Medication", 'String'>
+  readonly marketingStatus: Prisma.FieldRef<"Medication", 'String'>
+  readonly holder: Prisma.FieldRef<"Medication", 'String'>
+  readonly createdAt: Prisma.FieldRef<"Medication", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Medication", 'DateTime'>
 }
     
 

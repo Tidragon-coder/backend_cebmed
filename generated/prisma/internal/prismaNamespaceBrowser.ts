@@ -97,12 +97,14 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 
 export const MedicationScalarFieldEnum = {
   id: 'id',
+  cisCode: 'cisCode',
   name: 'name',
-  type: 'type',
-  description: 'description',
-  manufacturer: 'manufacturer',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
+  pharmaceuticalForm: 'pharmaceuticalForm',
+  administrationRoutes: 'administrationRoutes',
+  marketingStatus: 'marketingStatus',
+  holder: 'holder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type MedicationScalarFieldEnum = (typeof MedicationScalarFieldEnum)[keyof typeof MedicationScalarFieldEnum]
