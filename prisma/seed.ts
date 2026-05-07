@@ -1,32 +1,43 @@
-﻿import "dotenv/config";
-import { prisma } from "../src/lib/prisma";
+﻿import { prisma } from '../lib/prisma'; 
+import { decode } from 'iconv-lite';
+
+const LIMITE = 200;
 
 async function main() {
-  await prisma.user.upsert({
-    where: { email: "admin@example.com" },
-    update: {
-      first_name: "Admin",
-      last_name: "CebMed",
-      password: "$2b$10$ZXg7KkGTQKIoQWf5SVMh3uM3jxJ8QWJ6WmE04fNkR4iP0MHZ6L4T2",
-      is_active: true,
-    },
-    create: {
-      first_name: "Admin",
-      last_name: "CebMed",
-      date_of_birth: new Date("1990-01-01"),
-      email: "admin@example.com",
-      password: "$2b$10$ZXg7KkGTQKIoQWf5SVMh3uM3jxJ8QWJ6WmE04fNkR4iP0MHZ6L4T2",
-      is_active: true,
-    },
-  });
+  console.log('⏳ Récupération des médicaments...');
+
+  const res = await fetch('https://base-donnees-publique.medicaments.gouv.fr/download/file/CIS_bdpm.txt');
+  const buffer = await res.arrayBuffer();
+  const text = decode(Buffer.from(buffer), 'ISO-8859-1');
+
+  const lignes = text.split('\n').filter(Boolean).slice(0, LIMITE);
+
+  let count = 0;
+
+  for (const ligne of lignes) {
+    const col = ligne.split('\t');
+    const [cisCode, name, pharmaceuticalForm, administrationRoutes, , , marketingStatus, , holder] = col;
+
+    await prisma.medication.upsert({
+      where: { cisCode },
+      update: {},
+      create: {
+        cisCode,
+        name,
+        pharmaceuticalForm: pharmaceuticalForm || null,
+        administrationRoutes: administrationRoutes || null,
+        marketingStatus: marketingStatus || null,
+        holder: holder?.trim() || null,
+      }
+    });
+
+    count++;
+    if (count % 50 === 0) console.log(`➡️ ${count}/${lignes.length} importés...`);
+  }
+
+  console.log(`✅ Import terminé — ${count} médicaments importés`);
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (error) => {
-    console.error("Seed error:", error);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());
