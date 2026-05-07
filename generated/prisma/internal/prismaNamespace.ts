@@ -391,7 +391,8 @@ export const ModelName = {
   UserCaregiver: 'UserCaregiver',
   Intake: 'Intake',
   Document: 'Document',
-  Appointment: 'Appointment'
+  Appointment: 'Appointment',
+  Newsletter: 'Newsletter'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -407,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "medication" | "treatment" | "stock" | "userCaregiver" | "intake" | "document" | "appointment"
+    modelProps: "user" | "medication" | "treatment" | "stock" | "userCaregiver" | "intake" | "document" | "appointment" | "newsletter"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1003,6 +1004,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Newsletter: {
+      payload: Prisma.$NewsletterPayload<ExtArgs>
+      fields: Prisma.NewsletterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NewsletterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NewsletterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload>
+        }
+        findFirst: {
+          args: Prisma.NewsletterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NewsletterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload>
+        }
+        findMany: {
+          args: Prisma.NewsletterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload>[]
+        }
+        create: {
+          args: Prisma.NewsletterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload>
+        }
+        createMany: {
+          args: Prisma.NewsletterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NewsletterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload>[]
+        }
+        delete: {
+          args: Prisma.NewsletterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload>
+        }
+        update: {
+          args: Prisma.NewsletterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload>
+        }
+        deleteMany: {
+          args: Prisma.NewsletterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NewsletterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NewsletterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload>[]
+        }
+        upsert: {
+          args: Prisma.NewsletterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterPayload>
+        }
+        aggregate: {
+          args: Prisma.NewsletterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNewsletter>
+        }
+        groupBy: {
+          args: Prisma.NewsletterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NewsletterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NewsletterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NewsletterCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1153,6 +1228,19 @@ export const AppointmentScalarFieldEnum = {
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
+
+
+export const NewsletterScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  accept_conditions: 'accept_conditions',
+  accepted_at: 'accepted_at',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NewsletterScalarFieldEnum = (typeof NewsletterScalarFieldEnum)[keyof typeof NewsletterScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1407,6 +1495,7 @@ export type GlobalOmitConfig = {
   intake?: Prisma.IntakeOmit
   document?: Prisma.DocumentOmit
   appointment?: Prisma.AppointmentOmit
+  newsletter?: Prisma.NewsletterOmit
 }
 
 /* Types for Logging */

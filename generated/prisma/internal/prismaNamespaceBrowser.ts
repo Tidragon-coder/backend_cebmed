@@ -58,7 +58,8 @@ export const ModelName = {
   UserCaregiver: 'UserCaregiver',
   Intake: 'Intake',
   Document: 'Document',
-  Appointment: 'Appointment'
+  Appointment: 'Appointment',
+  Newsletter: 'Newsletter'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -188,6 +189,19 @@ export const AppointmentScalarFieldEnum = {
 } as const
 
 export type AppointmentScalarFieldEnum = (typeof AppointmentScalarFieldEnum)[keyof typeof AppointmentScalarFieldEnum]
+
+
+export const NewsletterScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  accept_conditions: 'accept_conditions',
+  accepted_at: 'accepted_at',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NewsletterScalarFieldEnum = (typeof NewsletterScalarFieldEnum)[keyof typeof NewsletterScalarFieldEnum]
 
 
 export const SortOrder = {

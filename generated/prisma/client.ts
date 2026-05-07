@@ -79,3 +79,8 @@ export type Document = Prisma.DocumentModel
  * 
  */
 export type Appointment = Prisma.AppointmentModel
+/**
+ * Model Newsletter
+ * 
+ */
+export type Newsletter = Prisma.NewsletterModel
