@@ -6,6 +6,9 @@
   location: string | null;
   start_time: Date;
   end_time: Date;
+  notifications_enabled: boolean;
+  consultation_type: string | null;
+  reminder_delay: number | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -16,6 +19,9 @@ export interface CreateAppointmentInput {
   location?: string;
   start_time: string;
   end_time: string;
+  notificationsEnabled?: boolean;
+  consultationType?: string;
+  reminderDelay?: number;
 }
 
 export interface UpdateAppointmentInput {
@@ -24,6 +30,9 @@ export interface UpdateAppointmentInput {
   location?: string;
   start_time?: string;
   end_time?: string;
+  notificationsEnabled?: boolean;
+  consultationType?: string;
+  reminderDelay?: number;
 }
 
 export interface AppointmentListResponse {

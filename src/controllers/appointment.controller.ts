@@ -7,6 +7,20 @@ import {
   UpdateAppointmentInput,
 } from "../models/appointment.model";
 
+const normalizeConsultationType = (value?: string): string | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toUpperCase();
+
+  if (!["PRESENTIAL", "VIDEO", "PHONE"].includes(normalized)) {
+    return null;
+  }
+
+  return normalized;
+};
+
 export const getAppointments = async (
   req: AuthenticatedRequest,
   res: Response
@@ -58,6 +72,9 @@ export const createAppointment = async (
     location,
     start_time,
     end_time,
+    notificationsEnabled,
+    consultationType,
+    reminderDelay,
   } = req.body as CreateAppointmentInput;
 
   if (
@@ -84,6 +101,37 @@ export const createAppointment = async (
     });
   }
 
+  const parsedReminderDelay =
+    reminderDelay === undefined || reminderDelay === null
+      ? null
+      : Number(reminderDelay);
+
+  if (
+    parsedReminderDelay !== null &&
+    (!Number.isInteger(parsedReminderDelay) || parsedReminderDelay < 0)
+  ) {
+    return res.status(400).json({
+      message: "reminderDelay doit être un entier positif",
+    });
+  }
+
+  if (
+    notificationsEnabled !== undefined &&
+    typeof notificationsEnabled !== "boolean"
+  ) {
+    return res.status(400).json({
+      message: "notificationsEnabled doit être un booléen",
+    });
+  }
+
+  const normalizedConsultationType = normalizeConsultationType(consultationType);
+
+  if (consultationType !== undefined && normalizedConsultationType === null) {
+    return res.status(400).json({
+      message: "consultationType doit être PRESENTIAL, VIDEO ou PHONE",
+    });
+  }
+
   try {
     const appointment = await prisma.appointment.create({
       data: {
@@ -93,6 +141,9 @@ export const createAppointment = async (
         location,
         start_time: parsedStart,
         end_time: parsedEnd,
+        notifications_enabled: notificationsEnabled ?? false,
+        consultation_type: normalizedConsultationType,
+        reminder_delay: parsedReminderDelay,
       },
     });
 
@@ -125,6 +176,43 @@ export const updateAppointment = async (
     });
   }
 
+  const parsedReminderDelay =
+    payload.reminderDelay === undefined || payload.reminderDelay === null
+      ? undefined
+      : Number(payload.reminderDelay);
+
+  if (
+    parsedReminderDelay !== undefined &&
+    (!Number.isInteger(parsedReminderDelay) || parsedReminderDelay < 0)
+  ) {
+    return res.status(400).json({
+      message: "reminderDelay doit être un entier positif",
+    });
+  }
+
+  if (
+    payload.notificationsEnabled !== undefined &&
+    typeof payload.notificationsEnabled !== "boolean"
+  ) {
+    return res.status(400).json({
+      message: "notificationsEnabled doit être un booléen",
+    });
+  }
+
+  const normalizedConsultationType =
+    payload.consultationType === undefined
+      ? undefined
+      : normalizeConsultationType(payload.consultationType);
+
+  if (
+    payload.consultationType !== undefined &&
+    normalizedConsultationType === null
+  ) {
+    return res.status(400).json({
+      message: "consultationType doit être PRESENTIAL, VIDEO ou PHONE",
+    });
+  }
+
   try {
     const existing = await prisma.appointment.findFirst({
       where: {
@@ -153,6 +241,16 @@ export const updateAppointment = async (
         end_time: payload.end_time
           ? new Date(payload.end_time)
           : existing.end_time,
+        notifications_enabled:
+          payload.notificationsEnabled ?? existing.notifications_enabled,
+        consultation_type:
+          normalizedConsultationType === undefined
+            ? existing.consultation_type
+            : normalizedConsultationType,
+        reminder_delay:
+          parsedReminderDelay === undefined
+            ? existing.reminder_delay
+            : parsedReminderDelay,
       },
     });
 
