@@ -101,6 +101,12 @@ export const createAppointment = async (
     });
   }
 
+  if (parsedEnd <= parsedStart) {
+    return res.status(400).json({
+      message: "L'heure de fin doit être après l'heure de début",
+    });
+  }
+
   const parsedReminderDelay =
     reminderDelay === undefined || reminderDelay === null
       ? null
@@ -227,6 +233,25 @@ export const updateAppointment = async (
       });
     }
 
+    const nextStart = payload.start_time
+      ? new Date(payload.start_time)
+      : existing.start_time;
+    const nextEnd = payload.end_time
+      ? new Date(payload.end_time)
+      : existing.end_time;
+
+    if (Number.isNaN(nextStart.getTime()) || Number.isNaN(nextEnd.getTime())) {
+      return res.status(400).json({
+        message: "Dates invalides",
+      });
+    }
+
+    if (nextEnd <= nextStart) {
+      return res.status(400).json({
+        message: "L'heure de fin doit être après l'heure de début",
+      });
+    }
+
     const updated = await prisma.appointment.update({
       where: {
         id,
@@ -235,12 +260,8 @@ export const updateAppointment = async (
         title: payload.title ?? existing.title,
         description: payload.description ?? existing.description,
         location: payload.location ?? existing.location,
-        start_time: payload.start_time
-          ? new Date(payload.start_time)
-          : existing.start_time,
-        end_time: payload.end_time
-          ? new Date(payload.end_time)
-          : existing.end_time,
+        start_time: nextStart,
+        end_time: nextEnd,
         notifications_enabled:
           payload.notificationsEnabled ?? existing.notifications_enabled,
         consultation_type:
