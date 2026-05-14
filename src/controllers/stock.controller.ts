@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma";
 
 type AuthenticatedRequest = Request & {
   user?: {
-    id?: number;
+    id?: string;
   };
 };
 
