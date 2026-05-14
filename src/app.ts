@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes";
 import newsletterRoutes from "./routes/newsletter.routes";
 import medicationRoutes from "./routes/medication.routes";
 import appointmentRoutes from "./routes/appointment.routes";
+import documentRoutes from "./routes/document.routes";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/medication", medicationRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/documents", documentRoutes);
 
 app.get("/", (_req, res) => {
   res.send("API OK");
