@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma";
 
 type AuthenticatedRequest = Request & {
     user?: {
-        id?: number;
+        id?: string;
     };
 };
 
@@ -122,7 +122,7 @@ export const getMyTreatments = async (req: AuthenticatedRequest, res: Response) 
 
 // exemple :
 //   {
-//     "user_id": 1,
+//     "user_id": "uuid-user-id",
 //     "medication_id": 42,
 //     "dosage": "500 mg",
 //     "frequency": "2 fois par jour",

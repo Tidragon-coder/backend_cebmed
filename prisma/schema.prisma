@@ -1,6 +1,5 @@
 generator client {
   provider   = "prisma-client-js"
-  output     = "../generated/prisma"
   engineType = "client"
 }
 
@@ -9,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(uuid()) @db.Uuid
   firstName   String    @map("first_name") @db.VarChar(60)
   lastName    String    @map("last_name") @db.VarChar(60)
   dateOfBirth DateTime? @map("date_of_birth") @db.Date
@@ -19,16 +18,16 @@ model User {
   picture     String?   @db.VarChar(255)
   isActive    Boolean   @default(true) @map("is_active")
 
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  treatments    Treatment[]
-  stocks        Stock[]
-  documents     Document[]
-  appointments  Appointment[]
-  patients      UserCaregiver[] @relation("PatientRelation")
-  caregivers    UserCaregiver[] @relation("CaregiverRelation")
+  treatments   Treatment[]
+  stocks       Stock[]
+  documents    Document[]
+  appointments Appointment[]
+  patients     UserCaregiver[] @relation("PatientRelation")
+  caregivers   UserCaregiver[] @relation("CaregiverRelation")
 
   @@index([email], map: "idx_users_email")
   @@index([lastName, firstName], map: "idx_users_name")
@@ -36,19 +35,19 @@ model User {
 }
 
 model Medication {
-  id                   Int      @id @default(autoincrement())
-  cisCode              String   @unique
+  id                   Int     @id @default(autoincrement())
+  cisCode              String  @unique
   name                 String
   pharmaceuticalForm   String?
   administrationRoutes String?
   marketingStatus      String?
   holder               String?
 
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  treatments           Treatment[]
-  stocks               Stock[]
+  treatments Treatment[]
+  stocks     Stock[]
 }
 
 enum TreatmentStatus {
@@ -59,24 +58,24 @@ enum TreatmentStatus {
 }
 
 model Treatment {
-  id            Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  user_id       Int
-  user          User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @db.Uuid
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   medication_id Int
   medication    Medication @relation(fields: [medication_id], references: [id])
 
-  dosage        String   @db.VarChar(50)
-  frequency     String   @db.VarChar(50)
-  start_date    DateTime @db.Date
-  end_date      DateTime?
-  status        TreatmentStatus @default(ACTIVE)
+  dosage     String          @db.VarChar(50)
+  frequency  String          @db.VarChar(50)
+  start_date DateTime        @db.Date
+  end_date   DateTime?
+  status     TreatmentStatus @default(ACTIVE)
 
-  intakes       Intake[] @relation("TreatmentIntakes")
+  intakes Intake[] @relation("TreatmentIntakes")
 
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([user_id], map: "idx_treatments_user_id")
   @@index([medication_id], map: "idx_treatments_medication_id")
@@ -84,18 +83,18 @@ model Treatment {
 }
 
 model Stock {
-  id            Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  user_id       Int
-  user          User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id       String     @db.Uuid
+  user          User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   medication_id Int
   medication    Medication @relation(fields: [medication_id], references: [id])
 
-  quantity      Int
-  location      String   @db.VarChar(100)
+  quantity Int
+  location String @db.VarChar(100)
 
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([user_id, medication_id], map: "idx_stock_user_id")
   @@map("stock")
@@ -108,18 +107,18 @@ enum CaregiverStatus {
 }
 
 model UserCaregiver {
-  id            Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  user_id       Int
-  user          User @relation("PatientRelation", fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @db.Uuid
+  user    User   @relation("PatientRelation", fields: [user_id], references: [id], onDelete: Cascade)
 
-  caregiver_id  Int
-  caregiver     User @relation("CaregiverRelation", fields: [caregiver_id], references: [id], onDelete: Cascade)
+  caregiver_id String @db.Uuid
+  caregiver    User   @relation("CaregiverRelation", fields: [caregiver_id], references: [id], onDelete: Cascade)
 
-  status        CaregiverStatus @default(PENDING)
+  status CaregiverStatus @default(PENDING)
 
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([user_id], map: "idx_user_caregiver_user_id")
   @@index([caregiver_id], map: "idx_user_caregiver_caregiver_id")
@@ -133,9 +132,9 @@ enum IntakeStatus {
 }
 
 model Intake {
-  id            Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  treatment_id  Int
+  treatment_id Int
   treatment    Treatment @relation("TreatmentIntakes", fields: [treatment_id], references: [id], onDelete: Cascade)
 
   scheduled_at  DateTime @db.Timestamptz(6)
@@ -143,61 +142,64 @@ model Intake {
   status        IntakeStatus @default(PENDING)
   note          String?  @db.Text
 
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([treatment_id], map: "idx_intakes_treatment_id")
   @@map("intakes")
 }
 
 model Document {
-  id            Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  user_id       Int
-  user          User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @db.Uuid
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  name         String   @db.VarChar(255)
-  type         String   @db.VarChar(100)
-  description   String?  @db.Text
-  file_path     String   @db.VarChar(255)
+  name        String  @db.VarChar(255)
+  type        String  @db.VarChar(100)
+  description String? @db.Text
+  file_path   String  @db.VarChar(255)
 
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([user_id], map: "idx_documents_user_id")
   @@map("documents")
 }
 
 model Appointment {
-  id            Int      @id @default(autoincrement())
+  id                    Int      @id @default(autoincrement())
 
-  user_id       Int
-  user          User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id               String   @db.Uuid
+  user                  User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  title         String   @db.VarChar(255)
-  description   String?  @db.Text
-  location      String?  @db.VarChar(255)
-  start_time    DateTime @db.Timestamptz(6)
-  end_time      DateTime @db.Timestamptz(6)
+  title                 String   @db.VarChar(255)
+  description           String?  @db.Text
+  location              String?  @db.VarChar(255)
+  start_time            DateTime @db.Timestamptz(6)
+  end_time              DateTime @db.Timestamptz(6)
+  notifications_enabled Boolean  @default(false)
+  consultation_type     String?  @db.VarChar(30)
+  reminder_delay        Int?
 
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime @updatedAt @db.Timestamptz(6)
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([user_id], map: "idx_appointments_user_id")
   @@map("appointments")
 }
 
 model Newsletter {
-  id                 Int      @id @default(autoincrement())
-  email              String   @unique @db.VarChar(255)
+  id    Int    @id @default(autoincrement())
+  email String @unique @db.VarChar(255)
 
-  accept_conditions  Boolean  @default(false)
-  accepted_at        DateTime?
+  accept_conditions Boolean   @default(false)
+  accepted_at       DateTime?
 
-  is_active          Boolean  @default(true)
+  is_active Boolean @default(true)
 
-  created_at         DateTime @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   @@map("newsletters")
 }

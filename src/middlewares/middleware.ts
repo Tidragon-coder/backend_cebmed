@@ -4,12 +4,12 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 const SECRET = process.env.JWT_SECRET;
 
 type AuthUser = JwtPayload & {
-    id?: number;
+    id?: string;
     email?: string;
     name?: string;
 };
 
-type AuthenticatedRequest = Request & {user?: AuthUser;};
+export type AuthenticatedRequest = Request & {user?: AuthUser;};
 
 export const authenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const authHeader = req.header("authorization");
