@@ -7,7 +7,7 @@ const SECRET = process.env.JWT_SECRET;
 
 type AuthenticatedRequest = Request & {
   user?: {
-    id?: string;
+    id?: number;
     email?: string;
     name?: string;
   };

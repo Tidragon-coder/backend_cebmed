@@ -4,7 +4,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 const SECRET = process.env.JWT_SECRET;
 
 type AuthUser = JwtPayload & {
-    id?: string;
+    id?: number;
     email?: string;
     name?: string;
 };
