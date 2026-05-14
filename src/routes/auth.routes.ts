@@ -1,7 +1,10 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { register } from "../controllers/auth.controller";
 import { login } from "../controllers/auth.controller";
 import { me } from "../controllers/auth.controller";
+import { updateMe } from "../controllers/auth.controller";
+import { updateMyPassword } from "../controllers/auth.controller";
+import { deleteMe } from "../controllers/auth.controller";
 
 import { authenticate } from "../middlewares/middleware";
 
@@ -49,5 +52,123 @@ router.post("/login", login);
  *         description: Unauthorized
  */
 router.get("/me", authenticate, me);
+
+/**
+ * @openapi
+ * /api/auth/me:
+ *   patch:
+ *     tags:
+ *       - Auth
+ *     summary: Update current authenticated user profile
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phone:
+ *                 type: string
+ *                 nullable: true
+ *               picture:
+ *                 type: string
+ *                 nullable: true
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       409:
+ *         description: Email already exists
+ *       500:
+ *         description: Internal server error
+ */
+router.patch("/me", authenticate, updateMe);
+
+/**
+ * @openapi
+ * /api/auth/me/password:
+ *   patch:
+ *     tags:
+ *       - Auth
+ *     summary: Change current authenticated user password
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - current_password
+ *               - new_password
+ *             properties:
+ *               current_password:
+ *                 type: string
+ *               new_password:
+ *                 type: string
+ *                 minLength: 8
+ *     responses:
+ *       200:
+ *         description: Password updated
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized or wrong current password
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.patch("/me/password", authenticate, updateMyPassword);
+
+/**
+ * @openapi
+ * /api/auth/me:
+ *   delete:
+ *     tags:
+ *       - Auth
+ *     summary: Delete current authenticated user account with password confirmation
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Account deleted
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized or wrong password
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/me", authenticate, deleteMe);
 
 export default router;

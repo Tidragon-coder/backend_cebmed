@@ -3,7 +3,6 @@ import cors from "cors";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
-import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
 import newsletterRoutes from "./routes/newsletter.routes";
 import medicationRoutes from "./routes/medication.routes";
@@ -45,7 +44,6 @@ app.use(
   swaggerUi.setup(swaggerSpec),
 );
 
-app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/medication", medicationRoutes);
