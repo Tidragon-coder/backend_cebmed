@@ -138,9 +138,10 @@ model Intake {
   treatment_id Int
   treatment    Treatment @relation("TreatmentIntakes", fields: [treatment_id], references: [id], onDelete: Cascade)
 
-  taken_at DateTime?    @db.Timestamptz(6)
-  status   IntakeStatus @default(PENDING)
-  note     String?      @db.Text
+  scheduled_at DateTime     @db.Timestamptz(6)
+  taken_at     DateTime?    @db.Timestamptz(6)
+  status       IntakeStatus @default(PENDING)
+  note         String?      @db.Text
 
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @updatedAt @db.Timestamptz(6)
