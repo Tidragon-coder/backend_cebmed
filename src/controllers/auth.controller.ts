@@ -1,4 +1,4 @@
-﻿import { Request, Response } from "express";
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { prisma } from "../lib/prisma";
@@ -7,7 +7,7 @@ const SECRET = process.env.JWT_SECRET;
 
 type AuthenticatedRequest = Request & {
   user?: {
-    id?: number;
+    id?: string;
     email?: string;
     name?: string;
   };
@@ -45,9 +45,9 @@ export const register = async (req: Request, res: Response) => {
 
     const createdUser = await prisma.user.create({
       data: {
-        first_name,
-        last_name,
-        date_of_birth: new Date(date_of_birth),
+        firstName: first_name,
+        lastName: last_name,
+        dateOfBirth: new Date(date_of_birth),
         email: normalizedEmail,
         phone: phone ?? null,
         password: passwordHash,
@@ -55,15 +55,15 @@ export const register = async (req: Request, res: Response) => {
       },
       select: {
         id: true,
-        first_name: true,
-        last_name: true,
-        date_of_birth: true,
+        firstName: true,
+        lastName: true,
+        dateOfBirth: true,
         email: true,
         phone: true,
         picture: true,
-        created_at: true,
-        updated_at: true,
-        is_active: true,
+        createdAt: true,
+        updatedAt: true,
+        isActive: true,
       },
     });
 
@@ -106,13 +106,13 @@ export const login = async (req: Request, res: Response) => {
       select: {
         id: true,
         email: true,
-        first_name: true,
+        firstName: true,
         password: true,
-        is_active: true,
+        isActive: true,
       },
     });
 
-    if (!user || !user.is_active) {
+    if (!user || !user.isActive) {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
@@ -123,7 +123,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.first_name },
+      { id: user.id, email: user.email, name: user.firstName },
       SECRET,
       { expiresIn: "24h" }
     );
@@ -145,15 +145,15 @@ export const me = async (req: AuthenticatedRequest, res: Response) => {
       where: { id: req.user.id },
       select: {
         id: true,
-        first_name: true,
-        last_name: true,
-        date_of_birth: true,
+        firstName: true,
+        lastName: true,
+        dateOfBirth: true,
         email: true,
         phone: true,
         picture: true,
-        created_at: true,
-        updated_at: true,
-        is_active: true,
+        createdAt: true,
+        updatedAt: true,
+        isActive: true,
       },
     });
 
@@ -195,24 +195,24 @@ export const updateMe = async (req: AuthenticatedRequest, res: Response) => {
   }
 
   const data: {
-    first_name?: string;
-    last_name?: string;
-    date_of_birth?: Date;
+    firstName?: string;
+    lastName?: string;
+    dateOfBirth?: Date;
     email?: string;
     phone?: string | null;
     picture?: string | null;
   } = {};
 
   if (typeof first_name === "string") {
-    data.first_name = first_name.trim();
+    data.firstName = first_name.trim();
   }
 
   if (typeof last_name === "string") {
-    data.last_name = last_name.trim();
+    data.lastName = last_name.trim();
   }
 
   if (typeof date_of_birth === "string") {
-    data.date_of_birth = new Date(date_of_birth);
+    data.dateOfBirth = new Date(date_of_birth);
   }
 
   if (typeof email === "string") {
@@ -233,13 +233,13 @@ export const updateMe = async (req: AuthenticatedRequest, res: Response) => {
       data,
       select: {
         id: true,
-        first_name: true,
-        last_name: true,
-        date_of_birth: true,
+        firstName: true,
+        lastName: true,
+        dateOfBirth: true,
         email: true,
         phone: true,
         picture: true,
-        updated_at: true,
+        updatedAt: true,
       },
     });
 
@@ -284,11 +284,11 @@ export const updateMyPassword = async (req: AuthenticatedRequest, res: Response)
       select: {
         id: true,
         password: true,
-        is_active: true,
+        isActive: true,
       },
     });
 
-    if (!user || !user.is_active) {
+    if (!user || !user.isActive) {
       return res.status(404).json({ message: "Utilisateur introuvable" });
     }
 
@@ -333,11 +333,11 @@ export const deleteMe = async (req: AuthenticatedRequest, res: Response) => {
       select: {
         id: true,
         password: true,
-        is_active: true,
+        isActive: true,
       },
     });
 
-    if (!user || !user.is_active) {
+    if (!user || !user.isActive) {
       return res.status(404).json({ message: "Utilisateur introuvable" });
     }
 

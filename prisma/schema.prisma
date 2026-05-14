@@ -6,8 +6,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
- 
 }
 
 model User {
@@ -63,7 +61,7 @@ enum TreatmentStatus {
 model Treatment {
   id            Int      @id @default(autoincrement())
 
-  user_id       Int
+  user_id       String   @db.Uuid
   user          User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   medication_id Int
@@ -88,7 +86,7 @@ model Treatment {
 model Stock {
   id            Int      @id @default(autoincrement())
 
-  user_id       Int
+  user_id       String   @db.Uuid
   user          User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   medication_id Int
   medication    Medication @relation(fields: [medication_id], references: [id])
@@ -112,10 +110,10 @@ enum CaregiverStatus {
 model UserCaregiver {
   id            Int      @id @default(autoincrement())
 
-  user_id       Int
+  user_id       String   @db.Uuid
   user          User @relation("PatientRelation", fields: [user_id], references: [id], onDelete: Cascade)
 
-  caregiver_id  Int
+  caregiver_id  String   @db.Uuid
   caregiver     User @relation("CaregiverRelation", fields: [caregiver_id], references: [id], onDelete: Cascade)
 
   status        CaregiverStatus @default(PENDING)
@@ -154,7 +152,7 @@ model Intake {
 model Document {
   id            Int      @id @default(autoincrement())
 
-  user_id       Int
+  user_id       String   @db.Uuid
   user          User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   name         String   @db.VarChar(255)
@@ -172,7 +170,7 @@ model Document {
 model Appointment {
   id            Int      @id @default(autoincrement())
 
-  user_id       Int
+  user_id       String   @db.Uuid
   user          User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   title         String   @db.VarChar(255)

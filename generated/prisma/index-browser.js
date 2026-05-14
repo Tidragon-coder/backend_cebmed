@@ -122,16 +122,104 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
-  first_name: 'first_name',
-  last_name: 'last_name',
-  date_of_birth: 'date_of_birth',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  dateOfBirth: 'dateOfBirth',
   email: 'email',
   phone: 'phone',
   password: 'password',
   picture: 'picture',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.MedicationScalarFieldEnum = {
+  id: 'id',
+  cisCode: 'cisCode',
+  name: 'name',
+  pharmaceuticalForm: 'pharmaceuticalForm',
+  administrationRoutes: 'administrationRoutes',
+  marketingStatus: 'marketingStatus',
+  holder: 'holder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TreatmentScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  medication_id: 'medication_id',
+  dosage: 'dosage',
+  frequency: 'frequency',
+  start_date: 'start_date',
+  end_date: 'end_date',
+  status: 'status',
   created_at: 'created_at',
-  updated_at: 'updated_at',
-  is_active: 'is_active'
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.StockScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  medication_id: 'medication_id',
+  quantity: 'quantity',
+  location: 'location',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.UserCaregiverScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  caregiver_id: 'caregiver_id',
+  status: 'status',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.IntakeScalarFieldEnum = {
+  id: 'id',
+  treatment_id: 'treatment_id',
+  taken_at: 'taken_at',
+  status: 'status',
+  note: 'note',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.DocumentScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  name: 'name',
+  type: 'type',
+  description: 'description',
+  file_path: 'file_path',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.AppointmentScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  title: 'title',
+  description: 'description',
+  location: 'location',
+  start_time: 'start_time',
+  end_time: 'end_time',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+};
+
+exports.Prisma.NewsletterScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  accept_conditions: 'accept_conditions',
+  accepted_at: 'accepted_at',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 };
 
 exports.Prisma.SortOrder = {
@@ -148,10 +236,35 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
+exports.TreatmentStatus = exports.$Enums.TreatmentStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  PAUSED: 'PAUSED',
+  CANCELLED: 'CANCELLED'
+};
 
+exports.CaregiverStatus = exports.$Enums.CaregiverStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED'
+};
+
+exports.IntakeStatus = exports.$Enums.IntakeStatus = {
+  PENDING: 'PENDING',
+  TAKEN: 'TAKEN',
+  MISSED: 'MISSED'
+};
 
 exports.Prisma.ModelName = {
-  User: 'User'
+  User: 'User',
+  Medication: 'Medication',
+  Treatment: 'Treatment',
+  Stock: 'Stock',
+  UserCaregiver: 'UserCaregiver',
+  Intake: 'Intake',
+  Document: 'Document',
+  Appointment: 'Appointment',
+  Newsletter: 'Newsletter'
 };
 
 /**
