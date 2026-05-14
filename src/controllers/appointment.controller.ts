@@ -7,6 +7,22 @@ import {
   UpdateAppointmentInput,
 } from "../models/appointment.model";
 
+const normalizeConsultationType = (
+  value?: string
+): "PRESENTIAL" | "VIDEO" | "PHONE" | null => {
+  if (value === undefined) {
+    return null;
+  }
+
+  const normalized = value.trim().toUpperCase();
+
+  if (!["PRESENTIAL", "VIDEO", "PHONE"].includes(normalized)) {
+    return null;
+  }
+
+  return normalized as "PRESENTIAL" | "VIDEO" | "PHONE";
+};
+
 export const getAppointments = async (
   req: AuthenticatedRequest,
   res: Response
@@ -58,6 +74,9 @@ export const createAppointment = async (
     location,
     start_time,
     end_time,
+    notificationsEnabled,
+    consultationType,
+    reminderDelay,
   } = req.body as CreateAppointmentInput;
 
   if (
@@ -84,15 +103,55 @@ export const createAppointment = async (
     });
   }
 
+  if (parsedStart >= parsedEnd) {
+    return res.status(400).json({
+      message: "La date de fin doit être après la date de début",
+    });
+  }
+
+  const parsedReminderDelay =
+    reminderDelay === undefined || reminderDelay === null
+      ? null
+      : Number(reminderDelay);
+
+  if (
+    parsedReminderDelay !== null &&
+    (!Number.isInteger(parsedReminderDelay) || parsedReminderDelay < 0)
+  ) {
+    return res.status(400).json({
+      message: "reminderDelay doit être un entier positif",
+    });
+  }
+
+  if (
+    notificationsEnabled !== undefined &&
+    typeof notificationsEnabled !== "boolean"
+  ) {
+    return res.status(400).json({
+      message: "notificationsEnabled doit être un booléen",
+    });
+  }
+
+  const normalizedConsultationType = normalizeConsultationType(consultationType);
+
+  if (consultationType !== undefined && normalizedConsultationType === null) {
+    return res.status(400).json({
+      message: "consultationType doit être PRESENTIAL, VIDEO ou PHONE",
+    });
+  }
+
   try {
     const appointment = await prisma.appointment.create({
       data: {
         user_id: req.user.id,
         title: title.trim(),
-        description,
-        location,
+        description: description ?? null,
+        location: location ?? null,
         start_time: parsedStart,
         end_time: parsedEnd,
+        notifications_enabled: notificationsEnabled ?? false,
+        consultation_type: normalizedConsultationType,
+        reminder_delay: parsedReminderDelay,
       },
     });
 
@@ -125,6 +184,60 @@ export const updateAppointment = async (
     });
   }
 
+  const parsedReminderDelay =
+    payload.reminderDelay === undefined || payload.reminderDelay === null
+      ? undefined
+      : Number(payload.reminderDelay);
+
+  if (
+    parsedReminderDelay !== undefined &&
+    (!Number.isInteger(parsedReminderDelay) || parsedReminderDelay < 0)
+  ) {
+    return res.status(400).json({
+      message: "reminderDelay doit être un entier positif",
+    });
+  }
+
+  if (
+    payload.notificationsEnabled !== undefined &&
+    typeof payload.notificationsEnabled !== "boolean"
+  ) {
+    return res.status(400).json({
+      message: "notificationsEnabled doit être un booléen",
+    });
+  }
+
+  const normalizedConsultationType =
+    payload.consultationType === undefined
+      ? undefined
+      : normalizeConsultationType(payload.consultationType);
+
+  if (
+    payload.consultationType !== undefined &&
+    normalizedConsultationType === null
+  ) {
+    return res.status(400).json({
+      message: "consultationType doit être PRESENTIAL, VIDEO ou PHONE",
+    });
+  }
+
+  const parsedStart = payload.start_time
+    ? new Date(payload.start_time)
+    : undefined;
+
+  const parsedEnd = payload.end_time
+    ? new Date(payload.end_time)
+    : undefined;
+
+  if (
+    (parsedStart && Number.isNaN(parsedStart.getTime())) ||
+    (parsedEnd && Number.isNaN(parsedEnd.getTime()))
+  ) {
+    return res.status(400).json({
+      message: "Dates invalides",
+    });
+  }
+
   try {
     const existing = await prisma.appointment.findFirst({
       where: {
@@ -139,20 +252,35 @@ export const updateAppointment = async (
       });
     }
 
+    const finalStart = parsedStart ?? existing.start_time;
+    const finalEnd = parsedEnd ?? existing.end_time;
+
+    if (finalStart >= finalEnd) {
+      return res.status(400).json({
+        message: "La date de fin doit être après la date de début",
+      });
+    }
+
     const updated = await prisma.appointment.update({
       where: {
         id,
       },
       data: {
-        title: payload.title ?? existing.title,
+        title: payload.title?.trim() ?? existing.title,
         description: payload.description ?? existing.description,
         location: payload.location ?? existing.location,
-        start_time: payload.start_time
-          ? new Date(payload.start_time)
-          : existing.start_time,
-        end_time: payload.end_time
-          ? new Date(payload.end_time)
-          : existing.end_time,
+        start_time: finalStart,
+        end_time: finalEnd,
+        notifications_enabled:
+          payload.notificationsEnabled ?? existing.notifications_enabled,
+        consultation_type:
+          normalizedConsultationType === undefined
+            ? existing.consultation_type
+            : normalizedConsultationType,
+        reminder_delay:
+          parsedReminderDelay === undefined
+            ? existing.reminder_delay
+            : parsedReminderDelay,
       },
     });
 
