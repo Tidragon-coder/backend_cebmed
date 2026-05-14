@@ -7816,6 +7816,7 @@ export namespace Prisma {
   export type IntakeMinAggregateOutputType = {
     id: number | null
     treatment_id: number | null
+    scheduled_at: Date | null
     taken_at: Date | null
     status: $Enums.IntakeStatus | null
     note: string | null
@@ -7826,6 +7827,7 @@ export namespace Prisma {
   export type IntakeMaxAggregateOutputType = {
     id: number | null
     treatment_id: number | null
+    scheduled_at: Date | null
     taken_at: Date | null
     status: $Enums.IntakeStatus | null
     note: string | null
@@ -7836,6 +7838,7 @@ export namespace Prisma {
   export type IntakeCountAggregateOutputType = {
     id: number
     treatment_id: number
+    scheduled_at: number
     taken_at: number
     status: number
     note: number
@@ -7858,6 +7861,7 @@ export namespace Prisma {
   export type IntakeMinAggregateInputType = {
     id?: true
     treatment_id?: true
+    scheduled_at?: true
     taken_at?: true
     status?: true
     note?: true
@@ -7868,6 +7872,7 @@ export namespace Prisma {
   export type IntakeMaxAggregateInputType = {
     id?: true
     treatment_id?: true
+    scheduled_at?: true
     taken_at?: true
     status?: true
     note?: true
@@ -7878,6 +7883,7 @@ export namespace Prisma {
   export type IntakeCountAggregateInputType = {
     id?: true
     treatment_id?: true
+    scheduled_at?: true
     taken_at?: true
     status?: true
     note?: true
@@ -7975,6 +7981,7 @@ export namespace Prisma {
   export type IntakeGroupByOutputType = {
     id: number
     treatment_id: number
+    scheduled_at: Date
     taken_at: Date | null
     status: $Enums.IntakeStatus
     note: string | null
@@ -8004,6 +8011,7 @@ export namespace Prisma {
   export type IntakeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     treatment_id?: boolean
+    scheduled_at?: boolean
     taken_at?: boolean
     status?: boolean
     note?: boolean
@@ -8015,6 +8023,7 @@ export namespace Prisma {
   export type IntakeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     treatment_id?: boolean
+    scheduled_at?: boolean
     taken_at?: boolean
     status?: boolean
     note?: boolean
@@ -8026,6 +8035,7 @@ export namespace Prisma {
   export type IntakeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     treatment_id?: boolean
+    scheduled_at?: boolean
     taken_at?: boolean
     status?: boolean
     note?: boolean
@@ -8037,6 +8047,7 @@ export namespace Prisma {
   export type IntakeSelectScalar = {
     id?: boolean
     treatment_id?: boolean
+    scheduled_at?: boolean
     taken_at?: boolean
     status?: boolean
     note?: boolean
@@ -8044,7 +8055,7 @@ export namespace Prisma {
     updated_at?: boolean
   }
 
-  export type IntakeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "treatment_id" | "taken_at" | "status" | "note" | "created_at" | "updated_at", ExtArgs["result"]["intake"]>
+  export type IntakeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "treatment_id" | "scheduled_at" | "taken_at" | "status" | "note" | "created_at" | "updated_at", ExtArgs["result"]["intake"]>
   export type IntakeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     treatment?: boolean | TreatmentDefaultArgs<ExtArgs>
   }
@@ -8063,6 +8074,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       treatment_id: number
+      scheduled_at: Date
       taken_at: Date | null
       status: $Enums.IntakeStatus
       note: string | null
@@ -8494,6 +8506,7 @@ export namespace Prisma {
   interface IntakeFieldRefs {
     readonly id: FieldRef<"Intake", 'Int'>
     readonly treatment_id: FieldRef<"Intake", 'Int'>
+    readonly scheduled_at: FieldRef<"Intake", 'DateTime'>
     readonly taken_at: FieldRef<"Intake", 'DateTime'>
     readonly status: FieldRef<"Intake", 'IntakeStatus'>
     readonly note: FieldRef<"Intake", 'String'>
@@ -12362,6 +12375,7 @@ export namespace Prisma {
   export const IntakeScalarFieldEnum: {
     id: 'id',
     treatment_id: 'treatment_id',
+    scheduled_at: 'scheduled_at',
     taken_at: 'taken_at',
     status: 'status',
     note: 'note',
@@ -12967,6 +12981,7 @@ export namespace Prisma {
     NOT?: IntakeWhereInput | IntakeWhereInput[]
     id?: IntFilter<"Intake"> | number
     treatment_id?: IntFilter<"Intake"> | number
+    scheduled_at?: DateTimeFilter<"Intake"> | Date | string
     taken_at?: DateTimeNullableFilter<"Intake"> | Date | string | null
     status?: EnumIntakeStatusFilter<"Intake"> | $Enums.IntakeStatus
     note?: StringNullableFilter<"Intake"> | string | null
@@ -12978,6 +12993,7 @@ export namespace Prisma {
   export type IntakeOrderByWithRelationInput = {
     id?: SortOrder
     treatment_id?: SortOrder
+    scheduled_at?: SortOrder
     taken_at?: SortOrderInput | SortOrder
     status?: SortOrder
     note?: SortOrderInput | SortOrder
@@ -12992,6 +13008,7 @@ export namespace Prisma {
     OR?: IntakeWhereInput[]
     NOT?: IntakeWhereInput | IntakeWhereInput[]
     treatment_id?: IntFilter<"Intake"> | number
+    scheduled_at?: DateTimeFilter<"Intake"> | Date | string
     taken_at?: DateTimeNullableFilter<"Intake"> | Date | string | null
     status?: EnumIntakeStatusFilter<"Intake"> | $Enums.IntakeStatus
     note?: StringNullableFilter<"Intake"> | string | null
@@ -13003,6 +13020,7 @@ export namespace Prisma {
   export type IntakeOrderByWithAggregationInput = {
     id?: SortOrder
     treatment_id?: SortOrder
+    scheduled_at?: SortOrder
     taken_at?: SortOrderInput | SortOrder
     status?: SortOrder
     note?: SortOrderInput | SortOrder
@@ -13021,6 +13039,7 @@ export namespace Prisma {
     NOT?: IntakeScalarWhereWithAggregatesInput | IntakeScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Intake"> | number
     treatment_id?: IntWithAggregatesFilter<"Intake"> | number
+    scheduled_at?: DateTimeWithAggregatesFilter<"Intake"> | Date | string
     taken_at?: DateTimeNullableWithAggregatesFilter<"Intake"> | Date | string | null
     status?: EnumIntakeStatusWithAggregatesFilter<"Intake"> | $Enums.IntakeStatus
     note?: StringNullableWithAggregatesFilter<"Intake"> | string | null
@@ -13670,6 +13689,7 @@ export namespace Prisma {
   }
 
   export type IntakeCreateInput = {
+    scheduled_at: Date | string
     taken_at?: Date | string | null
     status?: $Enums.IntakeStatus
     note?: string | null
@@ -13681,6 +13701,7 @@ export namespace Prisma {
   export type IntakeUncheckedCreateInput = {
     id?: number
     treatment_id: number
+    scheduled_at: Date | string
     taken_at?: Date | string | null
     status?: $Enums.IntakeStatus
     note?: string | null
@@ -13689,6 +13710,7 @@ export namespace Prisma {
   }
 
   export type IntakeUpdateInput = {
+    scheduled_at?: DateTimeFieldUpdateOperationsInput | Date | string
     taken_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumIntakeStatusFieldUpdateOperationsInput | $Enums.IntakeStatus
     note?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13700,6 +13722,7 @@ export namespace Prisma {
   export type IntakeUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     treatment_id?: IntFieldUpdateOperationsInput | number
+    scheduled_at?: DateTimeFieldUpdateOperationsInput | Date | string
     taken_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumIntakeStatusFieldUpdateOperationsInput | $Enums.IntakeStatus
     note?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13710,6 +13733,7 @@ export namespace Prisma {
   export type IntakeCreateManyInput = {
     id?: number
     treatment_id: number
+    scheduled_at: Date | string
     taken_at?: Date | string | null
     status?: $Enums.IntakeStatus
     note?: string | null
@@ -13718,6 +13742,7 @@ export namespace Prisma {
   }
 
   export type IntakeUpdateManyMutationInput = {
+    scheduled_at?: DateTimeFieldUpdateOperationsInput | Date | string
     taken_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumIntakeStatusFieldUpdateOperationsInput | $Enums.IntakeStatus
     note?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13728,6 +13753,7 @@ export namespace Prisma {
   export type IntakeUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     treatment_id?: IntFieldUpdateOperationsInput | number
+    scheduled_at?: DateTimeFieldUpdateOperationsInput | Date | string
     taken_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumIntakeStatusFieldUpdateOperationsInput | $Enums.IntakeStatus
     note?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14466,6 +14492,7 @@ export namespace Prisma {
   export type IntakeCountOrderByAggregateInput = {
     id?: SortOrder
     treatment_id?: SortOrder
+    scheduled_at?: SortOrder
     taken_at?: SortOrder
     status?: SortOrder
     note?: SortOrder
@@ -14481,6 +14508,7 @@ export namespace Prisma {
   export type IntakeMaxOrderByAggregateInput = {
     id?: SortOrder
     treatment_id?: SortOrder
+    scheduled_at?: SortOrder
     taken_at?: SortOrder
     status?: SortOrder
     note?: SortOrder
@@ -14491,6 +14519,7 @@ export namespace Prisma {
   export type IntakeMinOrderByAggregateInput = {
     id?: SortOrder
     treatment_id?: SortOrder
+    scheduled_at?: SortOrder
     taken_at?: SortOrder
     status?: SortOrder
     note?: SortOrder
@@ -15916,6 +15945,7 @@ export namespace Prisma {
   }
 
   export type IntakeCreateWithoutTreatmentInput = {
+    scheduled_at: Date | string
     taken_at?: Date | string | null
     status?: $Enums.IntakeStatus
     note?: string | null
@@ -15925,6 +15955,7 @@ export namespace Prisma {
 
   export type IntakeUncheckedCreateWithoutTreatmentInput = {
     id?: number
+    scheduled_at: Date | string
     taken_at?: Date | string | null
     status?: $Enums.IntakeStatus
     note?: string | null
@@ -16050,6 +16081,7 @@ export namespace Prisma {
     NOT?: IntakeScalarWhereInput | IntakeScalarWhereInput[]
     id?: IntFilter<"Intake"> | number
     treatment_id?: IntFilter<"Intake"> | number
+    scheduled_at?: DateTimeFilter<"Intake"> | Date | string
     taken_at?: DateTimeNullableFilter<"Intake"> | Date | string | null
     status?: EnumIntakeStatusFilter<"Intake"> | $Enums.IntakeStatus
     note?: StringNullableFilter<"Intake"> | string | null
@@ -16973,6 +17005,7 @@ export namespace Prisma {
 
   export type IntakeCreateManyTreatmentInput = {
     id?: number
+    scheduled_at: Date | string
     taken_at?: Date | string | null
     status?: $Enums.IntakeStatus
     note?: string | null
@@ -16981,6 +17014,7 @@ export namespace Prisma {
   }
 
   export type IntakeUpdateWithoutTreatmentInput = {
+    scheduled_at?: DateTimeFieldUpdateOperationsInput | Date | string
     taken_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumIntakeStatusFieldUpdateOperationsInput | $Enums.IntakeStatus
     note?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16990,6 +17024,7 @@ export namespace Prisma {
 
   export type IntakeUncheckedUpdateWithoutTreatmentInput = {
     id?: IntFieldUpdateOperationsInput | number
+    scheduled_at?: DateTimeFieldUpdateOperationsInput | Date | string
     taken_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumIntakeStatusFieldUpdateOperationsInput | $Enums.IntakeStatus
     note?: NullableStringFieldUpdateOperationsInput | string | null
@@ -16999,6 +17034,7 @@ export namespace Prisma {
 
   export type IntakeUncheckedUpdateManyWithoutTreatmentInput = {
     id?: IntFieldUpdateOperationsInput | number
+    scheduled_at?: DateTimeFieldUpdateOperationsInput | Date | string
     taken_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumIntakeStatusFieldUpdateOperationsInput | $Enums.IntakeStatus
     note?: NullableStringFieldUpdateOperationsInput | string | null

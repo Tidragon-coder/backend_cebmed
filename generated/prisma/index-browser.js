@@ -182,6 +182,7 @@ exports.Prisma.UserCaregiverScalarFieldEnum = {
 exports.Prisma.IntakeScalarFieldEnum = {
   id: 'id',
   treatment_id: 'treatment_id',
+  scheduled_at: 'scheduled_at',
   taken_at: 'taken_at',
   status: 'status',
   note: 'note',
