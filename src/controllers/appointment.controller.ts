@@ -7,8 +7,10 @@ import {
   UpdateAppointmentInput,
 } from "../models/appointment.model";
 
-const normalizeConsultationType = (value?: string): string | null => {
-  if (typeof value !== "string") {
+const normalizeConsultationType = (
+  value?: string
+): "PRESENTIAL" | "VIDEO" | "PHONE" | null => {
+  if (value === undefined) {
     return null;
   }
 
@@ -18,7 +20,7 @@ const normalizeConsultationType = (value?: string): string | null => {
     return null;
   }
 
-  return normalized;
+  return normalized as "PRESENTIAL" | "VIDEO" | "PHONE";
 };
 
 export const getAppointments = async (
@@ -101,6 +103,12 @@ export const createAppointment = async (
     });
   }
 
+  if (parsedStart >= parsedEnd) {
+    return res.status(400).json({
+      message: "La date de fin doit être après la date de début",
+    });
+  }
+
   const parsedReminderDelay =
     reminderDelay === undefined || reminderDelay === null
       ? null
@@ -137,8 +145,8 @@ export const createAppointment = async (
       data: {
         user_id: req.user.id,
         title: title.trim(),
-        description,
-        location,
+        description: description ?? null,
+        location: location ?? null,
         start_time: parsedStart,
         end_time: parsedEnd,
         notifications_enabled: notificationsEnabled ?? false,
@@ -213,6 +221,23 @@ export const updateAppointment = async (
     });
   }
 
+  const parsedStart = payload.start_time
+    ? new Date(payload.start_time)
+    : undefined;
+
+  const parsedEnd = payload.end_time
+    ? new Date(payload.end_time)
+    : undefined;
+
+  if (
+    (parsedStart && Number.isNaN(parsedStart.getTime())) ||
+    (parsedEnd && Number.isNaN(parsedEnd.getTime()))
+  ) {
+    return res.status(400).json({
+      message: "Dates invalides",
+    });
+  }
+
   try {
     const existing = await prisma.appointment.findFirst({
       where: {
@@ -227,20 +252,25 @@ export const updateAppointment = async (
       });
     }
 
+    const finalStart = parsedStart ?? existing.start_time;
+    const finalEnd = parsedEnd ?? existing.end_time;
+
+    if (finalStart >= finalEnd) {
+      return res.status(400).json({
+        message: "La date de fin doit être après la date de début",
+      });
+    }
+
     const updated = await prisma.appointment.update({
       where: {
         id,
       },
       data: {
-        title: payload.title ?? existing.title,
+        title: payload.title?.trim() ?? existing.title,
         description: payload.description ?? existing.description,
         location: payload.location ?? existing.location,
-        start_time: payload.start_time
-          ? new Date(payload.start_time)
-          : existing.start_time,
-        end_time: payload.end_time
-          ? new Date(payload.end_time)
-          : existing.end_time,
+        start_time: finalStart,
+        end_time: finalEnd,
         notifications_enabled:
           payload.notificationsEnabled ?? existing.notifications_enabled,
         consultation_type:

@@ -13,12 +13,17 @@
   updated_at: Date;
 }
 
+export interface AppointmentListResponse {
+  count: number;
+  data: AppointmentModel[];
+}
+
 export interface CreateAppointmentInput {
   title: string;
   description?: string;
   location?: string;
-  start_time: string;
-  end_time: string;
+  start_time: string | Date;
+  end_time: string | Date;
   notificationsEnabled?: boolean;
   consultationType?: string;
   reminderDelay?: number;
@@ -28,14 +33,9 @@ export interface UpdateAppointmentInput {
   title?: string;
   description?: string;
   location?: string;
-  start_time?: string;
-  end_time?: string;
+  start_time?: string | Date;
+  end_time?: string | Date;
   notificationsEnabled?: boolean;
   consultationType?: string;
   reminderDelay?: number;
-}
-
-export interface AppointmentListResponse {
-  count: number;
-  data: AppointmentModel[];
 }
