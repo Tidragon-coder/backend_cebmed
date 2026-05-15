@@ -15,7 +15,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 const ALLOWED_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png"];
 
-const getUserId = (req: AuthenticatedRequest, res: Response): string | null => {
+const getUserId = (req: AuthenticatedRequest, res: Response): number | null => {
   if (!req.user?.id) {
     res.status(401).json({ message: "Utilisateur non authentifié" });
     return null;
@@ -32,8 +32,8 @@ const isAllowedFile = (fileName: string): boolean => {
   return ALLOWED_EXTENSIONS.includes(ext);
 };
 
-const ensureUserDir = async (userId: string): Promise<string> => {
-  const userDir = path.join(STORAGE_ROOT, userId);
+const ensureUserDir = async (userId: number): Promise<string> => {
+  const userDir = path.join(STORAGE_ROOT, String(userId));
   await fs.mkdir(userDir, { recursive: true });
   return userDir;
 };
@@ -61,7 +61,7 @@ const saveDocumentFile = async ({
   fileName,
   contentBase64,
 }: {
-  userId: string;
+  userId: number;
   fileName: string;
   contentBase64: string;
 }): Promise<string> => {

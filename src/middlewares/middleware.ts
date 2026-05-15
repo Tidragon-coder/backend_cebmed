@@ -4,7 +4,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 const SECRET = process.env.JWT_SECRET;
 
 type AuthUser = JwtPayload & {
-    id?: string;
+    id?: number;
     email?: string;
     name?: string;
 };
@@ -28,6 +28,6 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
         req.user = decoded;
         return next();
     } catch (_err) {
-        return res.status(403).json({ message: "Token invalide ou expiré" });
+        return res.status(403).json({ message: "Token invalide ou expirï¿½" });
     }
 };

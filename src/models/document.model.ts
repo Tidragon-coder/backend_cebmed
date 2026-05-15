@@ -1,6 +1,6 @@
 ﻿export interface DocumentModel {
   id: number;
-  user_id: string;
+  user_id: number;
   name: string;
   type: string;
   description: string | null;

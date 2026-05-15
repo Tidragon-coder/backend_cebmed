@@ -1,11 +1,6 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { prisma } from "../lib/prisma";
-
-type AuthenticatedRequest = Request & {
-  user?: {
-    id?: number;
-  };
-};
+import { AuthenticatedRequest } from "../middlewares/middleware";
 
 const isValidDateTime = (value: string): boolean => {
   const date = new Date(value);

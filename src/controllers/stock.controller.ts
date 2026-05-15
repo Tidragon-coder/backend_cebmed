@@ -1,11 +1,6 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { prisma } from "../lib/prisma";
-
-type AuthenticatedRequest = Request & {
-  user?: {
-    id?: string;
-  };
-};
+import { AuthenticatedRequest } from "../middlewares/middleware";
 
 export const createStock = async (req: AuthenticatedRequest, res: Response) => {
   const userIdFromToken = req.user?.id;
