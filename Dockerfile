@@ -5,6 +5,8 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 RUN npm install
+ARG DATABASE_URL=postgresql://x:x@localhost:5432/x
+ENV DATABASE_URL=$DATABASE_URL
 RUN npx prisma generate
 
 # Stage 2 — dev avec hot-reload (nodemon/ts-node)
