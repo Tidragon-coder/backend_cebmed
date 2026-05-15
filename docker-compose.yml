@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      context: .
+      target: dev
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - ./storage:/app/storage
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
