@@ -1,16 +1,27 @@
 services:
+  migrate:
+    build:
+      context: .
+      target: deps
+    command: npx prisma migrate deploy
+    env_file:
+      - .env
+    restart: "no"
+
   api:
     build:
       context: .
       target: production
     ports:
-      - "3000:3000"
+      - "3001:3000"
     env_file:
       - .env
     volumes:
       - documents_storage:/app/storage/documents
     restart: unless-stopped
-    command: sh -c "npx prisma migrate deploy && node dist/server.js"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   documents_storage:
