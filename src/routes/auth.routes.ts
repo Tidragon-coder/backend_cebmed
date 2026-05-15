@@ -17,9 +17,47 @@ const router = Router();
  *     tags:
  *       - Auth
  *     summary: Register a new user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - first_name
+ *               - last_name
+ *               - date_of_birth
+ *               - email
+ *               - password
+ *             properties:
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phone:
+ *                 type: string
+ *                 nullable: true
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *               picture:
+ *                 type: string
+ *                 nullable: true
  *     responses:
  *       201:
  *         description: User created
+ *       400:
+ *         description: Invalid input
+ *       409:
+ *         description: Email already exists
+ *       500:
+ *         description: Internal server error
  */
 router.post("/register", register);
 
@@ -30,9 +68,30 @@ router.post("/register", register);
  *     tags:
  *       - Auth
  *     summary: Login user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Login success
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Invalid credentials
+ *       500:
+ *         description: Internal server error
  */
 router.post("/login", login);
 
@@ -49,7 +108,13 @@ router.post("/login", login);
  *       200:
  *         description: Current user info
  *       401:
- *         description: Unauthorized
+ *         description: Missing token
+ *       403:
+ *         description: Invalid or expired token
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
 router.get("/me", authenticate, me);
 
@@ -91,7 +156,9 @@ router.get("/me", authenticate, me);
  *       400:
  *         description: Invalid input
  *       401:
- *         description: Unauthorized
+ *         description: Missing token
+ *       403:
+ *         description: Invalid or expired token
  *       409:
  *         description: Email already exists
  *       500:
@@ -129,7 +196,9 @@ router.patch("/me", authenticate, updateMe);
  *       400:
  *         description: Invalid input
  *       401:
- *         description: Unauthorized or wrong current password
+ *         description: Missing token or wrong current password
+ *       403:
+ *         description: Invalid or expired token
  *       404:
  *         description: User not found
  *       500:
@@ -163,7 +232,9 @@ router.patch("/me/password", authenticate, updateMyPassword);
  *       400:
  *         description: Invalid input
  *       401:
- *         description: Unauthorized or wrong password
+ *         description: Missing token or wrong password
+ *       403:
+ *         description: Invalid or expired token
  *       404:
  *         description: User not found
  *       500:
