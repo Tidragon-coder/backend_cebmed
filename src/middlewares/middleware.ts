@@ -1,4 +1,4 @@
-﻿import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 const SECRET = process.env.JWT_SECRET;
@@ -9,7 +9,7 @@ type AuthUser = JwtPayload & {
     name?: string;
 };
 
-type AuthenticatedRequest = Request & {user?: AuthUser;};
+export type AuthenticatedRequest = Request & {user?: AuthUser;};
 
 export const authenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const authHeader = req.header("authorization");
@@ -28,6 +28,6 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
         req.user = decoded;
         return next();
     } catch (_err) {
-        return res.status(403).json({ message: "Token invalide ou expire" });
+        return res.status(403).json({ message: "Token invalide ou expir�" });
     }
 };
