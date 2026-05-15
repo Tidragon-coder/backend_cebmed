@@ -3,7 +3,10 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm ci
+COPY prisma.config.ts ./
+RUN npm install
+ARG DATABASE_URL=postgresql://x:x@localhost:5432/x
+ENV DATABASE_URL=$DATABASE_URL
 RUN npx prisma generate
 
 # Stage 2 — dev avec hot-reload (nodemon/ts-node)
@@ -26,7 +29,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/dist ./dist
 EXPOSE 3000
