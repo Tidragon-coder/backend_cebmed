@@ -1,5 +1,6 @@
 ﻿import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
@@ -13,7 +14,12 @@ import stockRoutes from "./routes/stock.routes";
 import intakeRoutes from "./routes/intake.routes";
 
 const app = express();
-
+app.set('trust proxy', 1);
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  frameguard: { action: 'deny' },
+}));
 app.use(cors());
 app.use(express.json());
 
@@ -22,7 +28,7 @@ const swaggerSpec = swaggerJsdoc({
     openapi: "3.0.0",
     info: {
       title: "CEBMED API",
-      version: "1.0.0",
+      version: "1.1.0",
     },
     components: {
       securitySchemes: {
@@ -41,6 +47,7 @@ const swaggerSpec = swaggerJsdoc({
   },
   apis: ["./src/routes/*.ts", "./dist/routes/*.js"],
 });
+
 
 app.use(
   "/docs",

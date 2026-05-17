@@ -1,14 +1,22 @@
 import { Router } from "express";
-import { register } from "../controllers/auth.controller";
-import { login } from "../controllers/auth.controller";
-import { me } from "../controllers/auth.controller";
-import { updateMe } from "../controllers/auth.controller";
-import { updateMyPassword } from "../controllers/auth.controller";
-import { deleteMe } from "../controllers/auth.controller";
+import {register, login, me, updateMe, updateMyPassword, deleteMe, logout, refresh} from "../controllers/auth.controller";
 
 import { authenticate } from "../middlewares/middleware";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
+
+// Définition du limiteur
+const publicLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,  // Fenêtre de 15 minutes
+    max: 100,                   // 100 requêtes max par IP
+    message: {
+        status: 429,
+        error: 'Trop de requêtes, réessaie dans 15 minutes.'
+    },
+    standardHeaders: true,  // Ajoute les headers RateLimit-* dans la réponse
+    legacyHeaders: false,   // Désactive les anciens headers X-RateLimit-*
+});
 
 /**
  * @openapi
@@ -59,7 +67,7 @@ const router = Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/register", register);
+router.post("/register", publicLimiter, register);
 
 /**
  * @openapi
@@ -93,7 +101,46 @@ router.post("/register", register);
  *       500:
  *         description: Internal server error
  */
-router.post("/login", login);
+router.post("/login", publicLimiter, login);
+
+/**
+ * @openapi
+ * /api/auth/refresh:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Refresh access token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refresh_token
+ *             properties:
+ *               refresh_token:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: New access and refresh tokens
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 access_token:
+ *                   type: string
+ *                 refresh_token:
+ *                   type: string
+ *       400:
+ *         description: refresh_token missing
+ *       401:
+ *         description: Refresh token invalide ou expiré
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/refresh', publicLimiter, refresh);
 
 /**
  * @openapi
@@ -241,5 +288,39 @@ router.patch("/me/password", authenticate, updateMyPassword);
  *         description: Internal server error
  */
 router.delete("/me", authenticate, deleteMe);
+
+/**
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Logout and revoke refresh token
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refresh_token
+ *             properties:
+ *               refresh_token:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Déconnecté avec succès
+ *       400:
+ *         description: refresh_token missing
+ *       401:
+ *         description: Missing token
+ *       403:
+ *         description: Invalid or expired token
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/logout', authenticate, logout);
 
 export default router;

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { prisma } from "../lib/prisma";
+import crypto from "crypto";
 
 const SECRET = process.env.JWT_SECRET;
 
@@ -17,6 +18,14 @@ const isValidDate = (value: string): boolean => {
   const date = new Date(value);
   return !Number.isNaN(date.getTime());
 };
+
+function generateRefreshToken(): string {
+  return crypto.randomBytes(64).toString('hex');
+}
+
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
 
 export const register = async (req: Request, res: Response) => {
   const { first_name, last_name, date_of_birth, email, phone, password, picture } = req.body;
@@ -122,16 +131,78 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: user.id, email: user.email, name: user.firstName },
       SECRET,
-      { expiresIn: "24h" }
+      { expiresIn: '15m' }
     );
 
-    return res.json({ token });
+    const rawRefreshToken = generateRefreshToken();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
+
+    await prisma.refreshToken.create({
+      data: {
+        token_hash: hashToken(rawRefreshToken),
+        user_id: user.id,
+        expires_at: expiresAt,
+      },
+    });
+
+    return res.json({ access_token: accessToken, refresh_token: rawRefreshToken });
   } catch (err) {
     console.error("Login error", err);
     return res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+export const refresh = async (req: Request, res: Response) => {
+  const { refresh_token } = req.body;
+
+  if (typeof refresh_token !== 'string' || refresh_token.length === 0) {
+    return res.status(400).json({ message: 'refresh_token is required' });
+  }
+
+  if (!SECRET) return res.status(500).json({ message: 'JWT_SECRET non configure' });
+
+  try {
+    const stored = await prisma.refreshToken.findUnique({
+      where: { token_hash: hashToken(refresh_token) },
+      select: {
+        id: true,
+        expires_at: true,
+        user: { select: { id: true, email: true, firstName: true, isActive: true } },
+      },
+    });
+
+    if (!stored || stored.expires_at < new Date()) {
+      if (stored) await prisma.refreshToken.delete({ where: { id: stored.id } });
+      return res.status(401).json({ message: 'Refresh token invalide ou expiré' });
+    }
+
+    if (!stored.user.isActive) {
+      return res.status(401).json({ message: 'Compte inactif' });
+    }
+
+    const newRaw = generateRefreshToken();
+    const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await prisma.$transaction([
+      prisma.refreshToken.delete({ where: { id: stored.id } }),
+      prisma.refreshToken.create({
+        data: { token_hash: hashToken(newRaw), user_id: stored.user.id, expires_at: newExpiresAt },
+      }),
+    ]);
+
+    const accessToken = jwt.sign(
+      { id: stored.user.id, email: stored.user.email, name: stored.user.firstName },
+      SECRET,
+      { expiresIn: '15m' }
+    );
+
+    return res.json({ access_token: accessToken, refresh_token: newRaw });
+  } catch (err) {
+    console.error('Refresh error', err);
+    return res.status(500).json({ message: 'Erreur serveur' });
   }
 };
 
@@ -357,3 +428,23 @@ export const deleteMe = async (req: AuthenticatedRequest, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+  export const logout = async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user?.id) return res.status(401).json({ message: 'Utilisateur non connecte' });
+
+    const { refresh_token } = req.body;
+
+    if (typeof refresh_token !== 'string' || refresh_token.length === 0) {
+      return res.status(400).json({ message: 'refresh_token is required' });
+    }
+
+    try {
+      await prisma.refreshToken.deleteMany({
+        where: { token_hash: hashToken(refresh_token), user_id: req.user.id },
+      });
+      return res.status(200).json({ message: 'Déconnecté avec succès' });
+    } catch (err) {
+      console.error('Logout error', err);
+      return res.status(500).json({ message: 'Erreur serveur' });
+    }
+  };
