@@ -72,3 +72,4 @@ docker-compose.override.yml
 package-lock.json
 codex.md
 claude.md
+storage/
