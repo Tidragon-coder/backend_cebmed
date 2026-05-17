@@ -118,6 +118,8 @@ export const login = async (req: Request, res: Response) => {
         firstName: true,
         password: true,
         isActive: true,
+        isPremium: true,
+        isAdmin: true,
       },
     });
 
@@ -132,7 +134,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const accessToken = jwt.sign(
-      { id: user.id, email: user.email, name: user.firstName },
+      { id: user.id, email: user.email, name: user.firstName, isPremium: user.isPremium, isAdmin: user.isAdmin },
       SECRET,
       { expiresIn: '15m' }
     );
@@ -225,6 +227,8 @@ export const me = async (req: AuthenticatedRequest, res: Response) => {
         createdAt: true,
         updatedAt: true,
         isActive: true,
+        isPremium: true,
+        isAdmin: true
       },
     });
 

@@ -16,7 +16,9 @@ model User {
   phone       String?   @db.VarChar(20)
   password    String    @db.VarChar(255)
   picture     String?   @db.VarChar(255)
+  isPremium   Boolean   @default(false) @map("is_premium")
   isActive    Boolean   @default(true) @map("is_active")
+  isAdmin     Boolean   @default(false) @map("is_admin")
 
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)

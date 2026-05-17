@@ -7,6 +7,8 @@ type AuthUser = JwtPayload & {
     id?: number;
     email?: string;
     name?: string;
+    isAdmin?: boolean;
+    isPremium?: boolean;
 };
 
 export type AuthenticatedRequest = Request & {user?: AuthUser;};
