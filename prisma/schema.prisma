@@ -22,16 +22,45 @@ model User {
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  treatments   Treatment[]
-  stocks       Stock[]
-  documents    Document[]
-  appointments Appointment[]
-  patients     UserCaregiver[] @relation("PatientRelation")
-  caregivers   UserCaregiver[] @relation("CaregiverRelation")
+  treatments     Treatment[]
+  stocks         Stock[]
+  documents      Document[]
+  appointments   Appointment[]
+  patients       UserCaregiver[]   @relation("PatientRelation")
+  caregivers     UserCaregiver[]   @relation("CaregiverRelation")
+  patientInvites CaregiverInvite[] @relation("PatientInvites")
+  usedInvites    CaregiverInvite[] @relation("UsedInvites")
 
   @@index([email], map: "idx_users_email")
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
+}
+
+enum CaregiverInviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+model CaregiverInvite {
+  id              Int                   @id @default(autoincrement())
+  patient_id      Int
+  code            String                @unique @db.VarChar(12)
+  status          CaregiverInviteStatus @default(PENDING)
+  expires_at      DateTime              @db.Timestamptz(6)
+  used_by_user_id Int?
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  patient    User  @relation("PatientInvites", fields: [patient_id], references: [id], onDelete: Cascade)
+  usedByUser User? @relation("UsedInvites", fields: [used_by_user_id], references: [id], onDelete: SetNull)
+
+  @@index([patient_id], map: "idx_caregiver_invites_patient_id")
+  @@index([used_by_user_id], map: "idx_caregiver_invites_used_by_user_id")
+  @@index([status], map: "idx_caregiver_invites_status")
+  @@map("caregiver_invites")
 }
 
 model Medication {
@@ -61,7 +90,7 @@ model Treatment {
   id Int @id @default(autoincrement())
 
   user_id Int
-  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user    User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   medication_id Int
   medication    Medication @relation(fields: [medication_id], references: [id])
@@ -110,10 +139,10 @@ model UserCaregiver {
   id Int @id @default(autoincrement())
 
   user_id Int
-  user    User   @relation("PatientRelation", fields: [user_id], references: [id], onDelete: Cascade)
+  user    User @relation("PatientRelation", fields: [user_id], references: [id], onDelete: Cascade)
 
   caregiver_id Int
-  caregiver    User   @relation("CaregiverRelation", fields: [caregiver_id], references: [id], onDelete: Cascade)
+  caregiver    User @relation("CaregiverRelation", fields: [caregiver_id], references: [id], onDelete: Cascade)
 
   status CaregiverStatus @default(PENDING)
 
@@ -137,10 +166,10 @@ model Intake {
   treatment_id Int
   treatment    Treatment @relation("TreatmentIntakes", fields: [treatment_id], references: [id], onDelete: Cascade)
 
-  scheduled_at  DateTime @db.Timestamptz(6)
-  taken_at      DateTime? @db.Timestamptz(6)
-  status        IntakeStatus @default(PENDING)
-  note          String?  @db.Text
+  scheduled_at DateTime     @db.Timestamptz(6)
+  taken_at     DateTime?    @db.Timestamptz(6)
+  status       IntakeStatus @default(PENDING)
+  note         String?      @db.Text
 
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @updatedAt @db.Timestamptz(6)
@@ -153,7 +182,7 @@ model Document {
   id Int @id @default(autoincrement())
 
   user_id Int
-  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user    User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   name        String  @db.VarChar(255)
   type        String  @db.VarChar(100)
@@ -168,10 +197,10 @@ model Document {
 }
 
 model Appointment {
-  id                    Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  user_id               Int
-  user                  User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   title                 String   @db.VarChar(255)
   description           String?  @db.Text
@@ -182,8 +211,8 @@ model Appointment {
   consultation_type     String?  @db.VarChar(30)
   reminder_delay        Int?
 
-  created_at            DateTime @default(now()) @db.Timestamptz(6)
-  updated_at            DateTime @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
 
   @@index([user_id], map: "idx_appointments_user_id")
   @@map("appointments")

@@ -11,6 +11,7 @@ import documentRoutes from "./routes/document.routes";
 import treatmentRoutes from "./routes/treatment.routes";
 import stockRoutes from "./routes/stock.routes";
 import intakeRoutes from "./routes/intake.routes";
+import caregiverInviteRoutes from "./routes/caregiver-invite.routes";
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use("/api/documents", documentRoutes);
 app.use("/api/treatment", treatmentRoutes);
 app.use("/api/stock", stockRoutes);
 app.use("/api/intake", intakeRoutes);
+app.use("/api/caregiver-invites", caregiverInviteRoutes);
 
 app.get("/", (_req, res) => {
   res.send("API OK");
