@@ -5,7 +5,7 @@ const router = Router();
 
 /**
  * @openapi
- * /api/newsletter/new:
+ * /api/newsletter/subscribe:
  *   post:
  *     tags:
  *       - Newsletter
@@ -36,6 +36,7 @@ const router = Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/new", addNewsletterMail);
+router.post("/subscribe", addNewsletterMail);
+// Legacy route kept for compatibility with existing frontend clients.
 
 export default router;
