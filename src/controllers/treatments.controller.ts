@@ -9,7 +9,7 @@ const isValidDate = (value: string): boolean => {
 
 export const createTreatments = async (req: AuthenticatedRequest, res: Response) => {
     const userIdFromToken = req.user?.id;
-    const { medication_id, dosage, frequency, start_date, end_date, status } = req.body;
+    const { medication_id, dosage, frequency, days_of_week, start_date, end_date, status } = req.body;
 
     if (!userIdFromToken) {
         return res.status(401).json({ message: "Utilisateur non authentifie" });
@@ -41,6 +41,14 @@ export const createTreatments = async (req: AuthenticatedRequest, res: Response)
         return res.status(400).json({ message: "Invalid status" });
     }
 
+    if (
+        days_of_week !== undefined &&
+        (!Array.isArray(days_of_week) ||
+            days_of_week.some((d: unknown) => !Number.isInteger(d) || (d as number) < 0 || (d as number) > 6))
+    ) {
+        return res.status(400).json({ message: "Invalid days_of_week: expected array of integers 0-6" });
+    }
+
     try {
         const createdTreatment = await prisma.treatment.create({
             data: {
@@ -48,6 +56,7 @@ export const createTreatments = async (req: AuthenticatedRequest, res: Response)
                 medication_id,
                 dosage,
                 frequency,
+                days_of_week: days_of_week ?? [],
                 start_date: new Date(start_date),
                 end_date: end_date ? new Date(end_date) : null,
                 status,
@@ -58,6 +67,7 @@ export const createTreatments = async (req: AuthenticatedRequest, res: Response)
                 medication_id: true,
                 dosage: true,
                 frequency: true,
+                days_of_week: true,
                 start_date: true,
                 end_date: true,
                 status: true,
@@ -94,6 +104,7 @@ export const getMyTreatments = async (req: AuthenticatedRequest, res: Response) 
                 medication_id: true,
                 dosage: true,
                 frequency: true,
+                days_of_week: true,
                 start_date: true,
                 end_date: true,
                 status: true,

@@ -110,13 +110,15 @@ model Treatment {
   medication_id Int
   medication    Medication @relation(fields: [medication_id], references: [id])
 
-  dosage     String          @db.VarChar(50)
-  frequency  String          @db.VarChar(50)
-  start_date DateTime        @db.Date
-  end_date   DateTime?
-  status     TreatmentStatus @default(ACTIVE)
+  dosage       String          @db.VarChar(50)
+  frequency    String          @db.VarChar(50)
+  days_of_week Int[]           @default([])
+  start_date   DateTime        @db.Date
+  end_date     DateTime?
+  status       TreatmentStatus @default(ACTIVE)
 
-  intakes Intake[] @relation("TreatmentIntakes")
+  schedules TreatmentSchedule[]
+  intakes   Intake[]            @relation("TreatmentIntakes")
 
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @updatedAt @db.Timestamptz(6)
@@ -124,6 +126,24 @@ model Treatment {
   @@index([user_id], map: "idx_treatments_user_id")
   @@index([medication_id], map: "idx_treatments_medication_id")
   @@map("treatments")
+}
+
+model TreatmentSchedule {
+  id Int @id @default(autoincrement())
+
+  treatment_id Int
+  treatment    Treatment @relation(fields: [treatment_id], references: [id], onDelete: Cascade)
+
+  time_of_day String  @db.VarChar(5)
+  quantity    Decimal @db.Decimal(6, 2)
+
+  intakes Intake[]
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([treatment_id], map: "idx_treatment_schedules_treatment_id")
+  @@map("treatment_schedules")
 }
 
 model Stock {
@@ -180,6 +200,9 @@ model Intake {
 
   treatment_id Int
   treatment    Treatment @relation("TreatmentIntakes", fields: [treatment_id], references: [id], onDelete: Cascade)
+
+  schedule_id Int?
+  schedule    TreatmentSchedule? @relation(fields: [schedule_id], references: [id], onDelete: SetNull)
 
   scheduled_at DateTime     @db.Timestamptz(6)
   taken_at     DateTime?    @db.Timestamptz(6)

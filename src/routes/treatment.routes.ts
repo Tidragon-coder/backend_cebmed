@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { createTreatments, getMyTreatments } from "../controllers/treatments.controller";
-
+import scheduleRoutes from "./treatmentSchedule.routes";
 import { authenticate } from "../middlewares/middleware";
 
 const router = Router();
@@ -42,6 +42,14 @@ const router = Router();
  *               status:
  *                 type: string
  *                 enum: [ACTIVE, COMPLETED, PAUSED, CANCELLED]
+ *               days_of_week:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                   minimum: 0
+ *                   maximum: 6
+ *                 example: [1, 3, 5]
+ *                 description: "Days of week (0=Sun, 1=Mon, ..., 6=Sat)"
  *     responses:
  *       201:
  *         description: Treatment created
@@ -72,5 +80,7 @@ router.post("/new", authenticate, createTreatments);
  *         description: Internal server error
  */
 router.get("/me", authenticate, getMyTreatments);
+
+router.use("/:id/schedules", scheduleRoutes);
 
 export default router;
