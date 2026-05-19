@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createTreatments, getMyTreatments } from "../controllers/treatments.controller";
+import { createTreatments, getMyTreatments, deleteTreatment } from "../controllers/treatments.controller";
 import scheduleRoutes from "./treatmentSchedule.routes";
 import { authenticate } from "../middlewares/middleware";
 
@@ -80,6 +80,36 @@ router.post("/new", authenticate, createTreatments);
  *         description: Internal server error
  */
 router.get("/me", authenticate, getMyTreatments);
+
+/**
+ * @openapi
+ * /api/treatment/{id}:
+ *   delete:
+ *     tags:
+ *       - Treatment
+ *     summary: Delete a treatment and all its schedules and intakes
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Treatment ID
+ *     responses:
+ *       200:
+ *         description: Treatment deleted
+ *       400:
+ *         description: Invalid id
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Treatment not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete("/:id", authenticate, deleteTreatment);
 
 router.use("/:id/schedules", scheduleRoutes);
 

@@ -126,13 +126,33 @@ export const getMyTreatments = async (req: AuthenticatedRequest, res: Response) 
     }
 };
 
-// exemple :
-//   {
-//     "user_id": "uuid-user-id",
-//     "medication_id": 42,
-//     "dosage": "500 mg",
-//     "frequency": "2 fois par jour",
-//     "start_date": "2026-05-07",
-//     "end_date": "2026-05-21",
-//     "status": "ACTIVE"
-//   }
+export const deleteTreatment = async (req: AuthenticatedRequest, res: Response) => {
+    const userIdFromToken = req.user?.id;
+    const treatmentId = Number(req.params.id);
+
+    if (!userIdFromToken) {
+        return res.status(401).json({ message: "Utilisateur non authentifie" });
+    }
+
+    if (!Number.isInteger(treatmentId) || treatmentId <= 0) {
+        return res.status(400).json({ message: "Invalid treatment id" });
+    }
+
+    try {
+        const treatment = await prisma.treatment.findFirst({
+            where: { id: treatmentId, user_id: userIdFromToken },
+            select: { id: true },
+        });
+
+        if (!treatment) {
+            return res.status(404).json({ message: "Treatment not found" });
+        }
+
+        await prisma.treatment.delete({ where: { id: treatmentId } });
+
+        return res.status(200).json({ message: "Treatment deleted successfully" });
+    } catch (error) {
+        console.error("Delete treatment error", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
