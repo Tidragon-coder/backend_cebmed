@@ -29,7 +29,7 @@ const swaggerSpec = swaggerJsdoc({
     openapi: "3.0.0",
     info: {
       title: "CEBMED API",
-      version: "1.2.0",
+      version: "1.2.1",
     },
     components: {
       securitySchemes: {
