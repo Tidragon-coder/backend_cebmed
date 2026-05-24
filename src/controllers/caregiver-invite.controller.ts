@@ -1,4 +1,4 @@
-import { Response } from "express";
+﻿import { Response } from "express";
 import { prisma } from "../lib/prisma";
 import { AuthenticatedRequest } from "../middlewares/middleware";
 
@@ -17,10 +17,45 @@ const randomCode = (): string => {
 
 const getUserId = (req: AuthenticatedRequest, res: Response): number | null => {
   if (!req.user?.id) {
-    res.status(401).json({ message: "Utilisateur non authentifié" });
+    res.status(401).json({ message: "Utilisateur non authentifie" });
     return null;
   }
   return req.user.id;
+};
+
+const PERMISSION_KEYS = [
+  "can_view_agenda",
+  "can_edit_agenda",
+  "can_view_documents",
+  "can_upload_documents",
+  "can_view_stock",
+  "can_edit_stock",
+  "can_view_profile",
+] as const;
+
+type PermissionKey = (typeof PERMISSION_KEYS)[number];
+
+const permissionSelect = {
+  can_view_agenda: true,
+  can_edit_agenda: true,
+  can_view_documents: true,
+  can_upload_documents: true,
+  can_view_stock: true,
+  can_edit_stock: true,
+  can_view_profile: true,
+} as const;
+
+const sanitizePermissionPatch = (body: unknown): Partial<Record<PermissionKey, boolean>> => {
+  const safe: Partial<Record<PermissionKey, boolean>> = {};
+  if (!body || typeof body !== "object") return safe;
+
+  const map = body as Record<string, unknown>;
+  for (const key of PERMISSION_KEYS) {
+    if (typeof map[key] === "boolean") {
+      safe[key] = map[key] as boolean;
+    }
+  }
+  return safe;
 };
 
 export const createCaregiverInvite = async (
@@ -76,16 +111,14 @@ export const redeemCaregiverInvite = async (
   const code = rawCode.trim().toUpperCase();
 
   try {
-    const invite = await prisma.caregiverInvite.findUnique({
-      where: { code },
-    });
+    const invite = await prisma.caregiverInvite.findUnique({ where: { code } });
 
     if (!invite) {
       return res.status(404).json({ message: "Invitation introuvable" });
     }
 
     if (invite.status !== "PENDING") {
-      return res.status(400).json({ message: "Invitation déjà utilisée ou invalide" });
+      return res.status(400).json({ message: "Invitation deja utilisee ou invalide" });
     }
 
     if (invite.expires_at.getTime() < Date.now()) {
@@ -93,7 +126,7 @@ export const redeemCaregiverInvite = async (
         where: { id: invite.id },
         data: { status: "EXPIRED" },
       });
-      return res.status(400).json({ message: "Invitation expirée" });
+      return res.status(400).json({ message: "Invitation expiree" });
     }
 
     if (invite.patient_id === userId) {
@@ -139,7 +172,7 @@ export const redeemCaregiverInvite = async (
     });
 
     return res.status(200).json({
-      message: "Invitation acceptée",
+      message: "Invitation acceptee",
       data: updatedInvite,
     });
   } catch (error) {
@@ -178,7 +211,35 @@ export const getMyCaregiverInvites = async (
         status: true,
         patient_id: true,
         updated_at: true,
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            picture: true,
+          },
+        },
       },
+    });
+
+    const relations = await prisma.userCaregiver.findMany({
+      where: { caregiver_id: userId },
+      select: {
+        id: true,
+        user_id: true,
+        caregiver_id: true,
+        status: true,
+        ...permissionSelect,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            picture: true,
+          },
+        },
+      },
+      orderBy: { updated_at: "desc" },
     });
 
     return res.status(200).json({
@@ -186,9 +247,100 @@ export const getMyCaregiverInvites = async (
       redeemed_count: redeemedInvites.length,
       created: createdInvites,
       redeemed: redeemedInvites,
+      relations,
     });
   } catch (error) {
     console.error("Erreur chargement invitations aidant", error);
+    return res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
+
+export const getCaregiverPermissions = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const userId = getUserId(req, res);
+  if (!userId) return;
+
+  const relationId = Number(req.params.relationId);
+  if (!Number.isFinite(relationId) || relationId <= 0) {
+    return res.status(400).json({ message: "relationId invalide" });
+  }
+
+  try {
+    const relation = await prisma.userCaregiver.findFirst({
+      where: {
+        id: relationId,
+        user_id: userId,
+      },
+      select: {
+        id: true,
+        user_id: true,
+        caregiver_id: true,
+        status: true,
+        ...permissionSelect,
+      },
+    });
+
+    if (!relation) {
+      return res.status(404).json({ message: "Relation aidant introuvable" });
+    }
+
+    return res.status(200).json({ data: relation });
+  } catch (error) {
+    console.error("Erreur lecture permissions aidant", error);
+    return res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
+
+export const updateCaregiverPermissions = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const userId = getUserId(req, res);
+  if (!userId) return;
+
+  const relationId = Number(req.params.relationId);
+  if (!Number.isFinite(relationId) || relationId <= 0) {
+    return res.status(400).json({ message: "relationId invalide" });
+  }
+
+  const patch = sanitizePermissionPatch(req.body);
+  if (Object.keys(patch).length === 0) {
+    return res.status(400).json({ message: "Aucune permission valide a mettre a jour" });
+  }
+
+  try {
+    const relation = await prisma.userCaregiver.findFirst({
+      where: {
+        id: relationId,
+        user_id: userId,
+      },
+      select: { id: true },
+    });
+
+    if (!relation) {
+      return res.status(404).json({ message: "Relation aidant introuvable" });
+    }
+
+    const updated = await prisma.userCaregiver.update({
+      where: { id: relation.id },
+      data: patch as Record<string, boolean>,
+      select: {
+        id: true,
+        user_id: true,
+        caregiver_id: true,
+        status: true,
+        ...permissionSelect,
+      },
+    });
+
+    return res.status(200).json({
+      message: "Permissions mises a jour",
+      data: updated,
+    });
+  } catch (error) {
+    console.error("Erreur mise a jour permissions aidant", error);
     return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };

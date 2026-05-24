@@ -1,6 +1,7 @@
 ﻿import { Response } from "express";
 import { prisma } from "../lib/prisma";
 import { AuthenticatedRequest } from "../middlewares/middleware";
+import { resolveCareTargetUserId } from "../middlewares/care-context";
 import {
   AppointmentListResponse,
   CreateAppointmentInput,
@@ -27,16 +28,13 @@ export const getAppointments = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  if (!req.user?.id) {
-    return res.status(401).json({
-      message: "Utilisateur non authentifié",
-    });
-  }
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_view_agenda");
+  if (!targetUserId) return;
 
   try {
     const appointments = await prisma.appointment.findMany({
       where: {
-        user_id: req.user.id,
+        user_id: targetUserId,
       },
       orderBy: {
         start_time: "asc",
@@ -62,11 +60,8 @@ export const createAppointment = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  if (!req.user?.id) {
-    return res.status(401).json({
-      message: "Utilisateur non authentifié",
-    });
-  }
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_edit_agenda");
+  if (!targetUserId) return;
 
   const {
     title,
@@ -143,7 +138,7 @@ export const createAppointment = async (
   try {
     const appointment = await prisma.appointment.create({
       data: {
-        user_id: req.user.id,
+        user_id: targetUserId,
         title: title.trim(),
         description: description ?? null,
         location: location ?? null,
@@ -169,11 +164,8 @@ export const updateAppointment = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  if (!req.user?.id) {
-    return res.status(401).json({
-      message: "Utilisateur non authentifié",
-    });
-  }
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_edit_agenda");
+  if (!targetUserId) return;
 
   const id = Number(req.params.id);
   const payload = req.body as UpdateAppointmentInput;
@@ -242,7 +234,7 @@ export const updateAppointment = async (
     const existing = await prisma.appointment.findFirst({
       where: {
         id,
-        user_id: req.user.id,
+        user_id: targetUserId,
       },
     });
 
@@ -298,11 +290,8 @@ export const deleteAppointment = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  if (!req.user?.id) {
-    return res.status(401).json({
-      message: "Utilisateur non authentifié",
-    });
-  }
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_edit_agenda");
+  if (!targetUserId) return;
 
   const id = Number(req.params.id);
 
@@ -316,7 +305,7 @@ export const deleteAppointment = async (
     const existing = await prisma.appointment.findFirst({
       where: {
         id,
-        user_id: req.user.id,
+        user_id: targetUserId,
       },
     });
 

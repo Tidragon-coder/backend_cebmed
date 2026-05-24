@@ -1,14 +1,28 @@
-import { Response } from "express";
+﻿import { Response } from "express";
 import { prisma } from "../lib/prisma";
 import { AuthenticatedRequest } from "../middlewares/middleware";
+import { resolveCareTargetUserId } from "../middlewares/care-context";
+
+const parseStockId = (value: string): number | null => {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+};
+
+const parseAmount = (value: unknown): number | null => {
+  if (!Number.isInteger(value) || (value as number) <= 0) {
+    return null;
+  }
+  return value as number;
+};
 
 export const createStock = async (req: AuthenticatedRequest, res: Response) => {
-  const userIdFromToken = req.user?.id;
-  const { medication_id, quantity, location } = req.body;
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_edit_stock");
+  if (!targetUserId) return;
 
-  if (!userIdFromToken) {
-    return res.status(401).json({ message: "Utilisateur non authentifie" });
-  }
+  const { medication_id, quantity, location } = req.body;
 
   if (medication_id === undefined || quantity === undefined || location === undefined) {
     return res.status(400).json({ message: "Missing required fields: medication_id, quantity, location" });
@@ -38,7 +52,7 @@ export const createStock = async (req: AuthenticatedRequest, res: Response) => {
 
     const stock = await prisma.stock.create({
       data: {
-        user_id: userIdFromToken,
+        user_id: targetUserId,
         medication_id,
         quantity,
         location: location.trim(),
@@ -65,12 +79,10 @@ export const createStock = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const getMyStock = async (req: AuthenticatedRequest, res: Response) => {
-  const userIdFromToken = req.user?.id;
-  const { limit } = req.query;
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_view_stock");
+  if (!targetUserId) return;
 
-  if (!userIdFromToken) {
-    return res.status(401).json({ message: "Utilisateur non authentifie" });
-  }
+  const { limit } = req.query;
 
   const parsedLimit = Number(limit);
   const take =
@@ -81,7 +93,7 @@ export const getMyStock = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const stocks = await prisma.stock.findMany({
       where: {
-        user_id: userIdFromToken,
+        user_id: targetUserId,
       },
       select: {
         id: true,
@@ -117,12 +129,10 @@ export const getMyStock = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const getStockById = async (req: AuthenticatedRequest, res: Response) => {
-  const userIdFromToken = req.user?.id;
-  const stockId = parseStockId(req.params.id);
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_view_stock");
+  if (!targetUserId) return;
 
-  if (!userIdFromToken) {
-    return res.status(401).json({ message: "Utilisateur non authentifie" });
-  }
+  const stockId = parseStockId(req.params.id);
 
   if (!stockId) {
     return res.status(400).json({ message: "Invalid stock id" });
@@ -132,7 +142,7 @@ export const getStockById = async (req: AuthenticatedRequest, res: Response) => 
     const stock = await prisma.stock.findFirst({
       where: {
         id: stockId,
-        user_id: userIdFromToken,
+        user_id: targetUserId,
       },
       select: {
         id: true,
@@ -167,29 +177,12 @@ export const getStockById = async (req: AuthenticatedRequest, res: Response) => 
   }
 };
 
-const parseStockId = (value: string): number | null => {
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    return null;
-  }
-  return parsed;
-};
-
-const parseAmount = (value: unknown): number | null => {
-  if (!Number.isInteger(value) || (value as number) <= 0) {
-    return null;
-  }
-  return value as number;
-};
-
 export const addToStock = async (req: AuthenticatedRequest, res: Response) => {
-  const userIdFromToken = req.user?.id;
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_edit_stock");
+  if (!targetUserId) return;
+
   const stockId = parseStockId(req.params.id);
   const amount = parseAmount(req.body?.amount);
-
-  if (!userIdFromToken) {
-    return res.status(401).json({ message: "Utilisateur non authentifie" });
-  }
 
   if (!stockId) {
     return res.status(400).json({ message: "Invalid stock id" });
@@ -203,7 +196,7 @@ export const addToStock = async (req: AuthenticatedRequest, res: Response) => {
     const stock = await prisma.stock.findFirst({
       where: {
         id: stockId,
-        user_id: userIdFromToken,
+        user_id: targetUserId,
       },
       select: {
         id: true,
@@ -241,13 +234,11 @@ export const addToStock = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const removeFromStock = async (req: AuthenticatedRequest, res: Response) => {
-  const userIdFromToken = req.user?.id;
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_edit_stock");
+  if (!targetUserId) return;
+
   const stockId = parseStockId(req.params.id);
   const amount = parseAmount(req.body?.amount);
-
-  if (!userIdFromToken) {
-    return res.status(401).json({ message: "Utilisateur non authentifie" });
-  }
 
   if (!stockId) {
     return res.status(400).json({ message: "Invalid stock id" });
@@ -261,7 +252,7 @@ export const removeFromStock = async (req: AuthenticatedRequest, res: Response) 
     const stock = await prisma.stock.findFirst({
       where: {
         id: stockId,
-        user_id: userIdFromToken,
+        user_id: targetUserId,
       },
       select: {
         id: true,
@@ -303,13 +294,11 @@ export const removeFromStock = async (req: AuthenticatedRequest, res: Response) 
 };
 
 export const updateStock = async (req: AuthenticatedRequest, res: Response) => {
-  const userIdFromToken = req.user?.id;
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_edit_stock");
+  if (!targetUserId) return;
+
   const stockId = parseStockId(req.params.id);
   const { quantity, location } = req.body;
-
-  if (!userIdFromToken) {
-    return res.status(401).json({ message: "Utilisateur non authentifie" });
-  }
 
   if (!stockId) {
     return res.status(400).json({ message: "Invalid stock id" });
@@ -331,7 +320,7 @@ export const updateStock = async (req: AuthenticatedRequest, res: Response) => {
     const stock = await prisma.stock.findFirst({
       where: {
         id: stockId,
-        user_id: userIdFromToken,
+        user_id: targetUserId,
       },
       select: {
         id: true,
@@ -376,12 +365,10 @@ export const updateStock = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const deleteStock = async (req: AuthenticatedRequest, res: Response) => {
-  const userIdFromToken = req.user?.id;
-  const stockId = parseStockId(req.params.id);
+  const targetUserId = await resolveCareTargetUserId(req, res, "can_edit_stock");
+  if (!targetUserId) return;
 
-  if (!userIdFromToken) {
-    return res.status(401).json({ message: "Utilisateur non authentifie" });
-  }
+  const stockId = parseStockId(req.params.id);
 
   if (!stockId) {
     return res.status(400).json({ message: "Invalid stock id" });
@@ -391,7 +378,7 @@ export const deleteStock = async (req: AuthenticatedRequest, res: Response) => {
     const stock = await prisma.stock.findFirst({
       where: {
         id: stockId,
-        user_id: userIdFromToken,
+        user_id: targetUserId,
       },
       select: {
         id: true,

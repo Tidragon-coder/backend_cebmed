@@ -4,6 +4,7 @@ import { Response } from "express";
 
 import { prisma } from "../lib/prisma";
 import { AuthenticatedRequest } from "../middlewares/middleware";
+import { resolveCareTargetUserId } from "../middlewares/care-context";
 import {
   CreateDocumentInput,
   DocumentListResponse,
@@ -14,15 +15,6 @@ const STORAGE_ROOT = path.resolve(process.cwd(), "storage", "documents");
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 const ALLOWED_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png"];
-
-const getUserId = (req: AuthenticatedRequest, res: Response): number | null => {
-  if (!req.user?.id) {
-    res.status(401).json({ message: "Utilisateur non authentifié" });
-    return null;
-  }
-
-  return req.user.id;
-};
 
 const sanitizeFileName = (fileName: string): string =>
   path.basename(fileName).replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -93,7 +85,7 @@ const handleFileError = (error: unknown, res: Response) => {
   if (error instanceof Error) {
     if (error.message === "INVALID_FILE_TYPE") {
       return res.status(400).json({
-        message: "Type de fichier non autorisé. Formats acceptés : PDF, JPG, JPEG, PNG",
+        message: "Type de fichier non autorise. Formats acceptes : PDF, JPG, JPEG, PNG",
       });
     }
 
@@ -117,7 +109,7 @@ export const getDocuments = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  const userId = getUserId(req, res);
+  const userId = await resolveCareTargetUserId(req, res, "can_view_documents");
   if (!userId) return;
 
   try {
@@ -142,7 +134,7 @@ export const getDocumentById = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  const userId = getUserId(req, res);
+  const userId = await resolveCareTargetUserId(req, res, "can_view_documents");
   if (!userId) return;
 
   const id = Number(req.params.id);
@@ -174,7 +166,7 @@ export const createDocument = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  const userId = getUserId(req, res);
+  const userId = await resolveCareTargetUserId(req, res, "can_upload_documents");
   if (!userId) return;
 
   const { name, type, description, fileName, contentBase64 } =
@@ -229,7 +221,7 @@ export const updateDocument = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  const userId = getUserId(req, res);
+  const userId = await resolveCareTargetUserId(req, res, "can_upload_documents");
   if (!userId) return;
 
   const id = Number(req.params.id);
@@ -303,7 +295,7 @@ export const deleteDocument = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  const userId = getUserId(req, res);
+  const userId = await resolveCareTargetUserId(req, res, "can_upload_documents");
   if (!userId) return;
 
   const id = Number(req.params.id);
@@ -336,7 +328,7 @@ export const downloadDocument = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
-  const userId = getUserId(req, res);
+  const userId = await resolveCareTargetUserId(req, res, "can_view_documents");
   if (!userId) return;
 
   const id = Number(req.params.id);

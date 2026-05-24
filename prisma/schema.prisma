@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider   = "prisma-client-js"
   engineType = "client"
 }
@@ -181,6 +181,14 @@ model UserCaregiver {
 
   status CaregiverStatus @default(PENDING)
 
+  can_view_agenda      Boolean @default(true)
+  can_edit_agenda      Boolean @default(false)
+  can_view_documents   Boolean @default(true)
+  can_upload_documents Boolean @default(false)
+  can_view_stock       Boolean @default(true)
+  can_edit_stock       Boolean @default(false)
+  can_view_profile     Boolean @default(true)
+
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @updatedAt @db.Timestamptz(6)
 
@@ -270,3 +278,4 @@ model Newsletter {
 
   @@map("newsletters")
 }
+
