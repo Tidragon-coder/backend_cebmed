@@ -2,7 +2,8 @@ import "dotenv/config";
 import app from "./app";
 import { prisma } from "./lib/prisma";
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT ?? 3000);
+const HOST = process.env.HOST ?? "0.0.0.0";
 
 const startServer = async () => {
   try {
@@ -13,8 +14,9 @@ const startServer = async () => {
     process.exit(1);
   }
 
-  app.listen(PORT, () => {
-    console.log(`Server started on http://localhost:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`Server started on http://${HOST}:${PORT}`);
+    console.log(`Local: http://localhost:${PORT}`);
     console.log(`Swagger: http://localhost:${PORT}/docs`);
   });
 };

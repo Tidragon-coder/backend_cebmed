@@ -5,6 +5,9 @@ import { prisma } from "../lib/prisma";
 import crypto from "crypto";
 
 const SECRET = process.env.JWT_SECRET;
+const PASSWORD_RESET_CODE_TTL_MS = 10 * 60 * 1000;
+
+const passwordResetCodes = new Map<string, { codeHash: string; expiresAt: Date }>();
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -27,6 +30,52 @@ function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
+function isStrongPassword(password: string): boolean {
+  return password.length >= 8 &&
+    /[a-z]/.test(password) &&
+    /[A-Z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^a-zA-Z\d]/.test(password);
+}
+
+const strongPasswordMessage =
+  "Le mot de passe doit contenir au moins 8 caractères, 1 minuscule, 1 majuscule, 1 chiffre et 1 caractère spécial";
+
+function generatePasswordResetCode(): string {
+  return String(crypto.randomInt(10000, 100000));
+}
+
+const sendPasswordResetEmail = async (email: string, code: string): Promise<void> => {
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL ?? "noreply@cebmed.fr";
+  const senderName = process.env.BREVO_SENDER_NAME ?? "CEBMED";
+
+  if (!apiKey) {
+    console.log(`[Password reset] Code pour ${email}: ${code}`);
+    return;
+  }
+
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": apiKey,
+    },
+    body: JSON.stringify({
+      sender: { name: senderName, email: senderEmail },
+      to: [{ email }],
+      subject: "Code de réinitialisation CEBMED",
+      htmlContent: `<p>Votre code de réinitialisation CEBMED est :</p><h2>${code}</h2><p>Ce code expire dans 10 minutes.</p>`,
+      textContent: `Votre code de réinitialisation CEBMED est : ${code}. Ce code expire dans 10 minutes.`,
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Brevo password reset failed (${response.status}): ${text}`);
+  }
+};
+
 export const register = async (req: Request, res: Response) => {
   const { first_name, last_name, date_of_birth, email, phone, password, picture } = req.body;
 
@@ -40,8 +89,8 @@ export const register = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Invalid email format" });
   }
 
-  if (typeof password !== "string" || password.length < 8) {
-    return res.status(400).json({ message: "Password must be at least 8 characters" });
+  if (typeof password !== "string" || !isStrongPassword(password)) {
+    return res.status(400).json({ message: strongPasswordMessage });
   }
 
   if (typeof date_of_birth !== "string" || !isValidDate(date_of_birth)) {
@@ -104,7 +153,7 @@ export const login = async (req: Request, res: Response) => {
   }
 
   if (!SECRET) {
-    return res.status(500).json({ message: "JWT_SECRET non configure" });
+    return res.status(500).json({ message: "JWT_SECRET non configuré" });
   }
 
   try {
@@ -157,6 +206,90 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json({ message: "Email invalide" });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true, isActive: true },
+    });
+
+    // Same success response to avoid revealing whether an email exists.
+    if (!user || !user.isActive) {
+      return res.status(200).json({
+        message: "Si ce compte existe, un code de réinitialisation a été envoyé",
+      });
+    }
+
+    const code = generatePasswordResetCode();
+    passwordResetCodes.set(normalizedEmail, {
+      codeHash: hashToken(code),
+      expiresAt: new Date(Date.now() + PASSWORD_RESET_CODE_TTL_MS),
+    });
+
+    await sendPasswordResetEmail(normalizedEmail, code);
+
+    return res.status(200).json({
+      message: "Si ce compte existe, un code de réinitialisation a été envoyé",
+    });
+  } catch (error) {
+    console.error("Request password reset error", error);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const { email, code, new_password } = req.body;
+
+  if (typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json({ message: "Email invalide" });
+  }
+
+  if (typeof code !== "string" || code.trim().length !== 5) {
+    return res.status(400).json({ message: "Code invalide" });
+  }
+
+  if (typeof new_password !== "string" || !isStrongPassword(new_password)) {
+    return res.status(400).json({ message: strongPasswordMessage });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const stored = passwordResetCodes.get(normalizedEmail);
+
+  if (!stored || stored.expiresAt.getTime() < Date.now()) {
+    passwordResetCodes.delete(normalizedEmail);
+    return res.status(400).json({ message: "Code expiré ou invalide" });
+  }
+
+  if (stored.codeHash !== hashToken(code.trim())) {
+    return res.status(400).json({ message: "Code expiré ou invalide" });
+  }
+
+  try {
+    const passwordHash = await bcrypt.hash(new_password, 10);
+
+    await prisma.user.update({
+      where: { email: normalizedEmail },
+      data: { password: passwordHash },
+      select: { id: true },
+    });
+
+    passwordResetCodes.delete(normalizedEmail);
+
+    return res.status(200).json({ message: "Mot de passe réinitialisé" });
+  } catch (error) {
+    console.error("Reset password error", error);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 export const refresh = async (req: Request, res: Response) => {
   const { refresh_token } = req.body;
 
@@ -164,7 +297,7 @@ export const refresh = async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'refresh_token is required' });
   }
 
-  if (!SECRET) return res.status(500).json({ message: 'JWT_SECRET non configure' });
+  if (!SECRET) return res.status(500).json({ message: 'JWT_SECRET non configuré' });
 
   try {
     const stored = await prisma.refreshToken.findUnique({
@@ -210,7 +343,7 @@ export const refresh = async (req: Request, res: Response) => {
 
 export const me = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user?.id) {
-    return res.status(401).json({ message: "Utilisateur non connecte" });
+    return res.status(401).json({ message: "Utilisateur non connecté" });
   }
 
   try {
@@ -245,7 +378,7 @@ export const me = async (req: AuthenticatedRequest, res: Response) => {
 
 export const updateMe = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user?.id) {
-    return res.status(401).json({ message: "Utilisateur non connecte" });
+    return res.status(401).json({ message: "Utilisateur non connecté" });
   }
 
   const { first_name, last_name, date_of_birth, email, phone, picture } = req.body;
@@ -336,7 +469,7 @@ export const updateMe = async (req: AuthenticatedRequest, res: Response) => {
 
 export const updateMyPassword = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user?.id) {
-    return res.status(401).json({ message: "Utilisateur non connecte" });
+    return res.status(401).json({ message: "Utilisateur non connecté" });
   }
 
   const { current_password, new_password } = req.body;
@@ -345,8 +478,8 @@ export const updateMyPassword = async (req: AuthenticatedRequest, res: Response)
     return res.status(400).json({ message: "current_password is required" });
   }
 
-  if (typeof new_password !== "string" || new_password.length < 8) {
-    return res.status(400).json({ message: "new_password must be at least 8 characters" });
+  if (typeof new_password !== "string" || !isStrongPassword(new_password)) {
+    return res.status(400).json({ message: strongPasswordMessage });
   }
 
   if (new_password === current_password) {
@@ -393,7 +526,7 @@ export const updateMyPassword = async (req: AuthenticatedRequest, res: Response)
 
 export const deleteMe = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user?.id) {
-    return res.status(401).json({ message: "Utilisateur non connecte" });
+    return res.status(401).json({ message: "Utilisateur non connecté" });
   }
 
   const { password } = req.body;
@@ -434,7 +567,7 @@ export const deleteMe = async (req: AuthenticatedRequest, res: Response) => {
 };
 
   export const logout = async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.user?.id) return res.status(401).json({ message: 'Utilisateur non connecte' });
+    if (!req.user?.id) return res.status(401).json({ message: 'Utilisateur non connecté' });
 
     const { refresh_token } = req.body;
 

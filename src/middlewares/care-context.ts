@@ -42,7 +42,7 @@ export const resolveCareTargetUserId = async (
 ): Promise<number | null> => {
   const actorId = req.user?.id;
   if (!actorId) {
-    res.status(401).json({ message: "Utilisateur non authentifie" });
+    res.status(401).json({ message: "Utilisateur non authentifié" });
     return null;
   }
 
@@ -75,7 +75,7 @@ export const resolveCareTargetUserId = async (
   });
 
   if (!relation) {
-    res.status(403).json({ message: "Acces patient non autorise" });
+    res.status(403).json({ message: "Accès patient non autorisé" });
     return null;
   }
 

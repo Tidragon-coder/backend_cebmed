@@ -1,9 +1,9 @@
-﻿import { Response } from "express";
+import { Response } from "express";
 import { prisma } from "../lib/prisma";
 import { AuthenticatedRequest } from "../middlewares/middleware";
 
 const CODE_LENGTH = 6;
-const EXPIRY_HOURS = 48;
+const EXPIRY_HOURS = 8;
 
 const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -17,7 +17,7 @@ const randomCode = (): string => {
 
 const getUserId = (req: AuthenticatedRequest, res: Response): number | null => {
   if (!req.user?.id) {
-    res.status(401).json({ message: "Utilisateur non authentifie" });
+    res.status(401).json({ message: "Utilisateur non authentifié" });
     return null;
   }
   return req.user.id;
@@ -66,6 +66,30 @@ export const createCaregiverInvite = async (
   if (!userId) return;
 
   try {
+    const activeInvite = await prisma.caregiverInvite.findFirst({
+      where: {
+        patient_id: userId,
+        status: "PENDING",
+        expires_at: {
+          gt: new Date(),
+        },
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+      select: {
+        id: true,
+        code: true,
+        status: true,
+        expires_at: true,
+        created_at: true,
+      },
+    });
+
+    if (activeInvite) {
+      return res.status(200).json(activeInvite);
+    }
+
     let code = randomCode();
     for (let i = 0; i < 5; i += 1) {
       const exists = await prisma.caregiverInvite.findUnique({ where: { code } });
@@ -92,7 +116,7 @@ export const createCaregiverInvite = async (
 
     return res.status(201).json(invite);
   } catch (error) {
-    console.error("Erreur creation invitation aidant", error);
+    console.error("Erreur création invitation aidant", error);
     return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
@@ -118,7 +142,7 @@ export const redeemCaregiverInvite = async (
     }
 
     if (invite.status !== "PENDING") {
-      return res.status(400).json({ message: "Invitation deja utilisee ou invalide" });
+      return res.status(400).json({ message: "Invitation déjà utilisée ou invalide" });
     }
 
     if (invite.expires_at.getTime() < Date.now()) {
@@ -126,7 +150,7 @@ export const redeemCaregiverInvite = async (
         where: { id: invite.id },
         data: { status: "EXPIRED" },
       });
-      return res.status(400).json({ message: "Invitation expiree" });
+      return res.status(400).json({ message: "Invitation expirée" });
     }
 
     if (invite.patient_id === userId) {

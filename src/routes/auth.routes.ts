@@ -1,5 +1,16 @@
 import { Router } from "express";
-import {register, login, me, updateMe, updateMyPassword, deleteMe, logout, refresh} from "../controllers/auth.controller";
+import {
+  register,
+  login,
+  me,
+  updateMe,
+  updateMyPassword,
+  deleteMe,
+  logout,
+  refresh,
+  requestPasswordReset,
+  resetPassword,
+} from "../controllers/auth.controller";
 
 import { authenticate } from "../middlewares/middleware";
 import rateLimit from "express-rate-limit";
@@ -102,6 +113,73 @@ router.post("/register", publicLimiter, register);
  *         description: Internal server error
  */
 router.post("/login", publicLimiter, login);
+
+/**
+ * @openapi
+ * /api/auth/password/forgot:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Request a password reset code by email
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Reset code sent if the account exists
+ *       400:
+ *         description: Invalid email
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/password/forgot", publicLimiter, requestPasswordReset);
+
+/**
+ * @openapi
+ * /api/auth/password/reset:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Reset password with email code
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *               - new_password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 minLength: 5
+ *                 maxLength: 5
+ *               new_password:
+ *                 type: string
+ *                 minLength: 8
+ *     responses:
+ *       200:
+ *         description: Password reset
+ *       400:
+ *         description: Invalid or expired code
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/password/reset", publicLimiter, resetPassword);
 
 /**
  * @openapi

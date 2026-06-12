@@ -42,7 +42,7 @@ export const createSchedule = async (req: AuthenticatedRequest, res: Response) =
   const treatmentId = parseId(req.params.id);
   const { time_of_day, quantity } = req.body;
 
-  if (!userIdFromToken) return res.status(401).json({ message: "Utilisateur non authentifie" });
+  if (!userIdFromToken) return res.status(401).json({ message: "Utilisateur non authentifié" });
   if (!treatmentId) return res.status(400).json({ message: "Invalid treatment id" });
   if (time_of_day === undefined || quantity === undefined)
     return res.status(400).json({ message: "Missing required fields: time_of_day, quantity" });
@@ -113,7 +113,7 @@ export const getSchedulesByTreatment = async (req: AuthenticatedRequest, res: Re
   const userIdFromToken = req.user?.id;
   const treatmentId = parseId(req.params.id);
 
-  if (!userIdFromToken) return res.status(401).json({ message: "Utilisateur non authentifie" });
+  if (!userIdFromToken) return res.status(401).json({ message: "Utilisateur non authentifié" });
   if (!treatmentId) return res.status(400).json({ message: "Invalid treatment id" });
 
   try {
@@ -149,7 +149,7 @@ export const deleteSchedule = async (req: AuthenticatedRequest, res: Response) =
   const treatmentId = parseId(req.params.id);
   const scheduleId = parseId(req.params.scheduleId);
 
-  if (!userIdFromToken) return res.status(401).json({ message: "Utilisateur non authentifie" });
+  if (!userIdFromToken) return res.status(401).json({ message: "Utilisateur non authentifié" });
   if (!treatmentId || !scheduleId) return res.status(400).json({ message: "Invalid id" });
 
   try {

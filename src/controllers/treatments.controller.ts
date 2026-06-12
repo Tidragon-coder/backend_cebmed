@@ -12,7 +12,7 @@ export const createTreatments = async (req: AuthenticatedRequest, res: Response)
     const { medication_id, dosage, frequency, days_of_week, start_date, end_date, status } = req.body;
 
     if (!userIdFromToken) {
-        return res.status(401).json({ message: "Utilisateur non authentifie" });
+        return res.status(401).json({ message: "Utilisateur non authentifié" });
     }
 
     if (!medication_id || !dosage || !frequency || !start_date) {
@@ -90,7 +90,7 @@ export const getMyTreatments = async (req: AuthenticatedRequest, res: Response) 
     const userIdFromToken = req.user?.id;
 
     if (!userIdFromToken) {
-        return res.status(401).json({ message: "Utilisateur non authentifie" });
+        return res.status(401).json({ message: "Utilisateur non authentifié" });
     }
 
     try {
@@ -131,7 +131,7 @@ export const deleteTreatment = async (req: AuthenticatedRequest, res: Response) 
     const treatmentId = Number(req.params.id);
 
     if (!userIdFromToken) {
-        return res.status(401).json({ message: "Utilisateur non authentifie" });
+        return res.status(401).json({ message: "Utilisateur non authentifié" });
     }
 
     if (!Number.isInteger(treatmentId) || treatmentId <= 0) {

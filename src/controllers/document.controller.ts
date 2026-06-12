@@ -1,6 +1,7 @@
 ﻿import { promises as fs } from "fs";
 import path from "path";
-import { Response } from "express";
+import { Request, Response } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 import { prisma } from "../lib/prisma";
 import { AuthenticatedRequest } from "../middlewares/middleware";
@@ -13,8 +14,14 @@ import {
 
 const STORAGE_ROOT = path.resolve(process.cwd(), "storage", "documents");
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const SHARE_LINK_EXPIRES_IN = "15m";
 
 const ALLOWED_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png"];
+
+type DocumentSharePayload = JwtPayload & {
+  documentId?: number;
+  purpose?: string;
+};
 
 const sanitizeFileName = (fileName: string): string =>
   path.basename(fileName).replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -47,6 +54,35 @@ const toPublicPath = (storedPath: string): string =>
 
 const buildDownloadUrl = (id: number): string =>
   `/api/documents/${id}/download`;
+
+const getJwtSecret = (): string | null => process.env.JWT_SECRET ?? null;
+
+const getPublicBaseUrl = (req: Request): string => {
+  const configured = process.env.PUBLIC_API_URL ?? process.env.API_PUBLIC_URL;
+  if (configured && configured.trim()) {
+    return configured.trim().replace(/\/$/, "");
+  }
+
+  return `${req.protocol}://${req.get("host")}`;
+};
+
+const buildPublicDocumentUrl = (req: Request, token: string): string =>
+  `${getPublicBaseUrl(req)}/api/documents/public/${token}`;
+
+const contentTypeFromFilePath = (filePath: string): string => {
+  const ext = path.extname(filePath).toLowerCase();
+  switch (ext) {
+    case ".pdf":
+      return "application/pdf";
+    case ".jpg":
+    case ".jpeg":
+      return "image/jpeg";
+    case ".png":
+      return "image/png";
+    default:
+      return "application/octet-stream";
+  }
+};
 
 const saveDocumentFile = async ({
   userId,
@@ -85,7 +121,7 @@ const handleFileError = (error: unknown, res: Response) => {
   if (error instanceof Error) {
     if (error.message === "INVALID_FILE_TYPE") {
       return res.status(400).json({
-        message: "Type de fichier non autorise. Formats acceptes : PDF, JPG, JPEG, PNG",
+        message: "Type de fichier non autorisé. Formats acceptés : PDF, JPG, JPEG, PNG",
       });
     }
 
@@ -354,5 +390,98 @@ export const downloadDocument = async (
   } catch (error) {
     console.error("Erreur téléchargement document", error);
     return res.status(404).json({ message: "Fichier introuvable" });
+  }
+};
+
+export const createDocumentShareLink = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const userId = await resolveCareTargetUserId(req, res, "can_view_documents");
+  if (!userId) return;
+
+  const id = Number(req.params.id);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ message: "Identifiant invalide" });
+  }
+
+  const secret = getJwtSecret();
+  if (!secret) {
+    return res.status(500).json({ message: "JWT_SECRET non configuré" });
+  }
+
+  try {
+    const document = await prisma.document.findFirst({
+      where: { id, user_id: userId },
+      select: { id: true },
+    });
+
+    if (!document) {
+      return res.status(404).json({ message: "Document introuvable" });
+    }
+
+    const token = jwt.sign(
+      {
+        documentId: document.id,
+        purpose: "document_public_share",
+      },
+      secret,
+      { expiresIn: SHARE_LINK_EXPIRES_IN }
+    );
+
+    return res.status(201).json({
+      share_url: buildPublicDocumentUrl(req, token),
+      expires_in: SHARE_LINK_EXPIRES_IN,
+    });
+  } catch (error) {
+    console.error("Erreur création lien partage document", error);
+    return res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
+
+export const downloadSharedDocument = async (
+  req: Request,
+  res: Response
+) => {
+  const token = req.params.token;
+  const secret = getJwtSecret();
+
+  if (!token || !secret) {
+    return res.status(400).json({ message: "Lien de partage invalide" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, secret) as DocumentSharePayload;
+
+    if (
+      decoded.purpose !== "document_public_share" ||
+      !Number.isInteger(decoded.documentId)
+    ) {
+      return res.status(400).json({ message: "Lien de partage invalide" });
+    }
+
+    const document = await prisma.document.findUnique({
+      where: { id: decoded.documentId },
+    });
+
+    if (!document) {
+      return res.status(404).json({ message: "Document introuvable" });
+    }
+
+    const absolutePath = toAbsolutePath(document.file_path);
+
+    await fs.access(absolutePath);
+
+    res.setHeader("Content-Type", contentTypeFromFilePath(document.file_path));
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${path.basename(document.file_path)}"`
+    );
+
+    return res.sendFile(absolutePath);
+  } catch (error) {
+    console.error("Erreur téléchargement lien partage document", error);
+    return res.status(404).json({ message: "Lien expiré ou document introuvable" });
   }
 };

@@ -1,9 +1,11 @@
 ﻿import { Router } from "express";
 
 import {
+  createDocumentShareLink,
   createDocument,
   deleteDocument,
   downloadDocument,
+  downloadSharedDocument,
   getDocumentById,
   getDocuments,
   updateDocument,
@@ -11,6 +13,22 @@ import {
 import { authenticate } from "../middlewares/middleware";
 
 const router = Router();
+
+/**
+ * @openapi
+ * /api/documents/public/{token}:
+ *   get:
+ *     tags:
+ *       - Documents
+ *     summary: Download a document from a temporary public share link
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ */
+router.get("/public/:token", downloadSharedDocument);
 
 /**
  * @openapi
@@ -47,6 +65,24 @@ router.get("/:id", authenticate, getDocumentById);
  *       - bearerAuth: []
  */
 router.post("/", authenticate, createDocument);
+
+/**
+ * @openapi
+ * /api/documents/{id}/share-link:
+ *   post:
+ *     tags:
+ *       - Documents
+ *     summary: Create a temporary public share link for a document
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ */
+router.post("/:id/share-link", authenticate, createDocumentShareLink);
 
 /**
  * @openapi
