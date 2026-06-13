@@ -2,24 +2,29 @@ import "dotenv/config";
 import { prisma } from "../src/lib/prisma";
 import { sendPushNotification } from "../src/services/notification.service";
 
-const WINDOW_MINUTES = parseInt(process.env.REMINDER_WINDOW_MINUTES ?? "1440", 10);
+const WINDOW_MINUTES = parseInt(process.env.REMINDER_WINDOW_MINUTES ?? "1", 10);
 
-// Tolérance ±7min autour de 30min et 60min (cron toutes les 15min)
-const FOLLOW_UP_TOLERANCE = 7 * 60 * 1000;
-const FOLLOW_UP_30_MIN   = 30 * 60 * 1000;
-const FOLLOW_UP_60_MIN   = 60 * 60 * 1000;
+// Tolérance ±1min (cron à la minute)
+const TOLERANCE        = 1 * 60 * 1000;
+const FOLLOW_UP_30_MIN = 30 * 60 * 1000;
+const FOLLOW_UP_60_MIN = 60 * 60 * 1000;
+const FOLLOW_UP_2H     = 120 * 60 * 1000;
 
-type FollowUpLevel = "30min" | "60min";
+type FollowUpLevel = "30min" | "60min" | "2h";
 
 function followUpWindows(now: Date): Record<FollowUpLevel, { gte: Date; lte: Date }> {
   return {
     "30min": {
-      gte: new Date(now.getTime() - FOLLOW_UP_30_MIN - FOLLOW_UP_TOLERANCE),
-      lte: new Date(now.getTime() - FOLLOW_UP_30_MIN + FOLLOW_UP_TOLERANCE),
+      gte: new Date(now.getTime() - FOLLOW_UP_30_MIN - TOLERANCE),
+      lte: new Date(now.getTime() - FOLLOW_UP_30_MIN + TOLERANCE),
     },
     "60min": {
-      gte: new Date(now.getTime() - FOLLOW_UP_60_MIN - FOLLOW_UP_TOLERANCE),
-      lte: new Date(now.getTime() - FOLLOW_UP_60_MIN + FOLLOW_UP_TOLERANCE),
+      gte: new Date(now.getTime() - FOLLOW_UP_60_MIN - TOLERANCE),
+      lte: new Date(now.getTime() - FOLLOW_UP_60_MIN + TOLERANCE),
+    },
+    "2h": {
+      gte: new Date(now.getTime() - FOLLOW_UP_2H - TOLERANCE),
+      lte: new Date(now.getTime() - FOLLOW_UP_2H + TOLERANCE),
     },
   };
 }
@@ -47,22 +52,28 @@ function buildNotification(
   const quantity = intake.schedule?.quantity ? `${parseFloat(String(intake.schedule.quantity))} ` : "";
   const medLabel = `${quantity}${dosage} de ${medication.name}`;
 
-  if (level === "initial") {
-    return {
-      title: `Rappel médicament — ${timeOfDay}`,
-      body: `Pensez à prendre ${medLabel}`,
-    };
+  switch (level) {
+    case "initial":
+      return {
+        title: `💊 Rappel médicament — ${timeOfDay}`,
+        body: `Pensez à prendre ${medLabel}`,
+      };
+    case "30min":
+      return {
+        title: `⏰ Médicament non pris — ${timeOfDay}`,
+        body: `Il y a 30 min : ${medLabel} — avez-vous pris votre dose ?`,
+      };
+    case "60min":
+      return {
+        title: `⚠️ Toujours en attente — ${timeOfDay}`,
+        body: `Votre prise de ${medLabel} n'a pas encore été validée.`,
+      };
+    case "2h":
+      return {
+        title: `🔔 Dernier rappel — ${timeOfDay}`,
+        body: `⚠️ Dernier rappel : pensez à prendre ${medLabel}`,
+      };
   }
-  if (level === "30min") {
-    return {
-      title: `⏰ Vous n'avez pas encore pris votre médicament`,
-      body: `Il y a 30 min : ${medLabel} — avez-vous pris votre dose ?`,
-    };
-  }
-  return {
-    title: `🔔 Dernier rappel — ${timeOfDay}`,
-    body: `⚠️ Dernier rappel : pensez à prendre ${medLabel}`,
-  };
 }
 
 async function sendBatch(
@@ -114,48 +125,57 @@ async function main() {
 
   console.log(`[${now.toISOString()}] Lancement des rappels médicaments...`);
 
-  // ── 1. Rappels initiaux ────────────────────────────────────
-  const initial = await prisma.intake.findMany({
-    where: {
-      status: "PENDING",
-      notified_at: null,
-      scheduled_at: { gte: now, lte: windowEnd },
-      treatment: { status: "ACTIVE" },
-    },
-    select: intakeSelect,
-  });
+  const [initial, followUp30, followUp60, followUp2h] = await Promise.all([
+    prisma.intake.findMany({
+      where: {
+        status: "PENDING",
+        notified_at: null,
+        scheduled_at: { gte: now, lte: windowEnd },
+        treatment: { status: "ACTIVE" },
+      },
+      select: intakeSelect,
+    }),
+    prisma.intake.findMany({
+      where: {
+        status: "PENDING",
+        notified_at: windows["30min"],
+        treatment: { status: "ACTIVE" },
+      },
+      select: intakeSelect,
+    }),
+    prisma.intake.findMany({
+      where: {
+        status: "PENDING",
+        notified_at: windows["60min"],
+        treatment: { status: "ACTIVE" },
+      },
+      select: intakeSelect,
+    }),
+    prisma.intake.findMany({
+      where: {
+        status: "PENDING",
+        notified_at: windows["2h"],
+        treatment: { status: "ACTIVE" },
+      },
+      select: intakeSelect,
+    }),
+  ]);
 
-  // ── 2. Relances 30 min ─────────────────────────────────────
-  const followUp30 = await prisma.intake.findMany({
-    where: {
-      status: "PENDING",
-      notified_at: windows["30min"],
-      treatment: { status: "ACTIVE" },
-    },
-    select: intakeSelect,
-  });
+  console.log(`  Initiaux: ${initial.length} | +30min: ${followUp30.length} | +1h: ${followUp60.length} | +2h: ${followUp2h.length}`);
 
-  // ── 3. Relances 60 min ─────────────────────────────────────
-  const followUp60 = await prisma.intake.findMany({
-    where: {
-      status: "PENDING",
-      notified_at: windows["60min"],
-      treatment: { status: "ACTIVE" },
-    },
-    select: intakeSelect,
-  });
-
-  console.log(`  Initiaux: ${initial.length} | Relances 30min: ${followUp30.length} | Relances 60min: ${followUp60.length}`);
-
-  const r1 = await sendBatch(initial,    "initial");
-  const r2 = await sendBatch(followUp30, "30min");
-  const r3 = await sendBatch(followUp60, "60min");
+  const [r1, r2, r3, r4] = await Promise.all([
+    sendBatch(initial,    "initial"),
+    sendBatch(followUp30, "30min"),
+    sendBatch(followUp60, "60min"),
+    sendBatch(followUp2h, "2h"),
+  ]);
 
   const total = (r: typeof r1) => `${r.sent} envoyée(s), ${r.skipped} ignorée(s), ${r.failed} erreur(s)`;
   console.log(`\nRésumé :`);
   console.log(`  Initial : ${total(r1)}`);
-  console.log(`  30 min  : ${total(r2)}`);
-  console.log(`  60 min  : ${total(r3)}`);
+  console.log(`  +30 min : ${total(r2)}`);
+  console.log(`  +1h     : ${total(r3)}`);
+  console.log(`  +2h     : ${total(r4)}`);
 }
 
 main()
