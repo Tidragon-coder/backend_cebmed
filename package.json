@@ -10,7 +10,9 @@
     "prisma:generate": "prisma generate",
     "prisma:seed": "prisma db seed",
     "prisma:verify": "tsx scripts/verify-prisma.ts",
-    "reminders:send": "tsx scripts/send-medication-reminders.ts"
+    "reminders:send": "tsx scripts/send-medication-reminders.ts",
+    "reminders:appointments": "tsx scripts/send-appointment-reminders.ts",
+    "intakes:missed": "tsx scripts/mark-missed-intakes.ts"
   },
   "keywords": [],
   "author": "",
