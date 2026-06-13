@@ -9,7 +9,8 @@
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:generate": "prisma generate",
     "prisma:seed": "prisma db seed",
-    "prisma:verify": "tsx scripts/verify-prisma.ts"
+    "prisma:verify": "tsx scripts/verify-prisma.ts",
+    "reminders:send": "tsx scripts/send-medication-reminders.ts"
   },
   "keywords": [],
   "author": "",
