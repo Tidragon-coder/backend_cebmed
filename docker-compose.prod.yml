@@ -16,6 +16,8 @@ services:
       - "3001:3000"
     env_file:
       - .env
+    environment:
+      - TZ=Europe/Paris
     volumes:
       - documents_storage:/app/storage/documents
     restart: unless-stopped
