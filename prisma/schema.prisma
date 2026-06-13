@@ -19,6 +19,7 @@ model User {
   isPremium   Boolean   @default(false) @map("is_premium")
   isActive    Boolean   @default(true) @map("is_active")
   isAdmin     Boolean   @default(false) @map("is_admin")
+  fcmToken    String?   @map("fcm_token") @db.Text
 
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
