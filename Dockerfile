@@ -32,5 +32,6 @@ COPY prisma ./prisma/
 RUN npm install --omit=dev
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/dist ./dist
+COPY scripts ./scripts/
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
