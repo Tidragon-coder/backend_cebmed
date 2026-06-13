@@ -3,7 +3,7 @@ import { prisma } from "../src/lib/prisma";
 import { sendPushNotification } from "../src/services/notification.service";
 
 // Fenêtre de rappel : intakes prévus dans les prochaines N minutes
-const WINDOW_MINUTES = parseInt(process.env.REMINDER_WINDOW_MINUTES ?? "15", 10);
+const WINDOW_MINUTES = parseInt(process.env.REMINDER_WINDOW_MINUTES ?? "1440", 10);
 
 async function main() {
   const now = new Date();
