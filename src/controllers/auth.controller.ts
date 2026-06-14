@@ -4,13 +4,14 @@ import bcrypt from "bcrypt";
 import { prisma } from "../lib/prisma";
 import crypto from "crypto";
 
-import { v4 as uuidv4 } from "uuid";
 import { sendVerificationEmail } from "../services/brevo.service";
 
 const SECRET = process.env.JWT_SECRET;
 const PASSWORD_RESET_CODE_TTL_MS = 10 * 60 * 1000;
+const EMAIL_VERIFY_CODE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const passwordResetCodes = new Map<string, { codeHash: string; expiresAt: Date }>();
+const emailVerificationCodes = new Map<string, { codeHash: string; expiresAt: Date }>();
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -128,16 +129,13 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
-    const verifyToken = uuidv4();
-    await prisma.user.update({
-      where: { id: createdUser.id },
-      data: {
-        emailVerifyToken: verifyToken,
-        emailVerifyExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
+    const verifyCode = generatePasswordResetCode();
+    emailVerificationCodes.set(createdUser.email.toLowerCase(), {
+      codeHash: hashToken(verifyCode),
+      expiresAt: new Date(Date.now() + EMAIL_VERIFY_CODE_TTL_MS),
     });
 
-    await sendVerificationEmail(createdUser.email, verifyToken);
+    await sendVerificationEmail(createdUser.email, verifyCode);
 
     return res.status(201).json({
       message: "Inscription réussie. Vérifiez votre email pour activer votre compte.",
@@ -609,33 +607,26 @@ export const deleteMe = async (req: AuthenticatedRequest, res: Response) => {
   };
 
 export const verifyEmail = async (req: Request, res: Response) => {
-  const { token } = req.query as { token: string };
+  const { email, code } = req.body;
 
-  if (!token) {
-    return res.status(400).json({ message: "Token manquant" });
+  if (typeof email !== "string" || typeof code !== "string") {
+    return res.status(400).json({ message: "Email et code requis" });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const stored = emailVerificationCodes.get(normalizedEmail);
+
+  if (!stored || stored.expiresAt < new Date() || stored.codeHash !== hashToken(code.trim())) {
+    return res.status(400).json({ message: "Code invalide ou expiré" });
   }
 
   try {
-    const user = await prisma.user.findFirst({
-      where: {
-        emailVerifyToken: token,
-        emailVerifyExpires: { gt: new Date() },
-      },
-      select: { id: true },
+    await prisma.user.updateMany({
+      where: { email: normalizedEmail },
+      data: { emailVerified: true },
     });
 
-    if (!user) {
-      return res.status(400).json({ message: "Lien invalide ou expiré" });
-    }
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        emailVerified: true,
-        emailVerifyToken: null,
-        emailVerifyExpires: null,
-      },
-    });
+    emailVerificationCodes.delete(normalizedEmail);
 
     return res.status(200).json({ message: "Email vérifié avec succès" });
   } catch (error) {
@@ -662,16 +653,13 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
       return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé" });
     }
 
-    const verifyToken = uuidv4();
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        emailVerifyToken: verifyToken,
-        emailVerifyExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
+    const verifyCode = generatePasswordResetCode();
+    emailVerificationCodes.set(email.trim().toLowerCase(), {
+      codeHash: hashToken(verifyCode),
+      expiresAt: new Date(Date.now() + EMAIL_VERIFY_CODE_TTL_MS),
     });
 
-    await sendVerificationEmail(email, verifyToken);
+    await sendVerificationEmail(email, verifyCode);
 
     return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé" });
   } catch (error) {
