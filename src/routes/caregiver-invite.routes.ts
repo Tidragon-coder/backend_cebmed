@@ -6,6 +6,7 @@ import {
   getMyCaregiverInvites,
   getCaregiverPermissions,
   updateCaregiverPermissions,
+  deleteCaregiverRelation,
 } from "../controllers/caregiver-invite.controller";
 
 const router = Router();
@@ -141,5 +142,30 @@ router.get("/permissions/:relationId", authenticate, getCaregiverPermissions);
  *         description: Relation introuvable
  */
 router.patch("/permissions/:relationId", authenticate, updateCaregiverPermissions);
+/**
+ * @swagger
+ * /api/caregiver-invites/relations/{relationId}:
+ *   delete:
+ *     summary: Supprimer une relation aidant/patient
+ *     tags: [Caregiver Invites]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: relationId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la relation user_caregivers
+ *     responses:
+ *       200:
+ *         description: Relation supprimée
+ *       400:
+ *         description: relationId invalide
+ *       404:
+ *         description: Relation introuvable
+ */
+router.delete("/relations/:relationId", authenticate, deleteCaregiverRelation);
 
 export default router;
+
