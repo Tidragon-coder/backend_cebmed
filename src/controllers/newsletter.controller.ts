@@ -33,7 +33,7 @@ export const addNewsletterMail = async (req: Request, res: Response) => {
     });
 
     // Keep DB write successful even if Brevo is down.
-    syncNewsletterContactToBrevo(email).catch((err) => {
+    syncNewsletterContactToBrevo(email).catch((err: unknown) => {
       console.error("Brevo sync error", err);
     });
 

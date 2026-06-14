@@ -13,6 +13,8 @@ import treatmentRoutes from "./routes/treatment.routes";
 import stockRoutes from "./routes/stock.routes";
 import intakeRoutes from "./routes/intake.routes";
 import caregiverInviteRoutes from "./routes/caregiver-invite.routes";
+import userRoutes from "./routes/user.routes";
+import notificationRoutes from "./routes/notification.routes";
 
 const app = express();
 app.set('trust proxy', 1);
@@ -29,7 +31,7 @@ const swaggerSpec = swaggerJsdoc({
     openapi: "3.0.0",
     info: {
       title: "CEBMED API",
-      version: "1.2.1",
+      version: "1.3.0",
     },
     components: {
       securitySchemes: {
@@ -65,6 +67,8 @@ app.use("/api/treatment", treatmentRoutes);
 app.use("/api/stock", stockRoutes);
 app.use("/api/intake", intakeRoutes);
 app.use("/api/caregiver-invites", caregiverInviteRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (_req, res) => {
   res.send("API OK");

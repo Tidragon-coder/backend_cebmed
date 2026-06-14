@@ -4,10 +4,14 @@ import bcrypt from "bcrypt";
 import { prisma } from "../lib/prisma";
 import crypto from "crypto";
 
+import { sendVerificationEmail } from "../services/brevo.service";
+
 const SECRET = process.env.JWT_SECRET;
 const PASSWORD_RESET_CODE_TTL_MS = 10 * 60 * 1000;
+const EMAIL_VERIFY_CODE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const passwordResetCodes = new Map<string, { codeHash: string; expiresAt: Date }>();
+const emailVerificationCodes = new Map<string, { codeHash: string; expiresAt: Date }>();
 
 type AuthenticatedRequest = Request & {
   user?: {
@@ -125,8 +129,16 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
+    const verifyCode = generatePasswordResetCode();
+    emailVerificationCodes.set(createdUser.email.toLowerCase(), {
+      codeHash: hashToken(verifyCode),
+      expiresAt: new Date(Date.now() + EMAIL_VERIFY_CODE_TTL_MS),
+    });
+
+    await sendVerificationEmail(createdUser.email, verifyCode);
+
     return res.status(201).json({
-      message: "User registered successfully",
+      message: "Inscription réussie. Vérifiez votre email pour activer votre compte.",
       user: createdUser,
     });
   } catch (error: unknown) {
@@ -169,6 +181,7 @@ export const login = async (req: Request, res: Response) => {
         isActive: true,
         isPremium: true,
         isAdmin: true,
+        emailVerified: true,
       },
     });
 
@@ -180,6 +193,13 @@ export const login = async (req: Request, res: Response) => {
 
     if (!isValid) {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        message: "Veuillez vérifier votre email avant de vous connecter",
+        code: "EMAIL_NOT_VERIFIED",
+      });
     }
 
     const accessToken = jwt.sign(
@@ -585,3 +605,65 @@ export const deleteMe = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(500).json({ message: 'Erreur serveur' });
     }
   };
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  const { email, code } = req.body;
+
+  if (typeof email !== "string" || typeof code !== "string") {
+    return res.status(400).json({ message: "Email et code requis" });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const stored = emailVerificationCodes.get(normalizedEmail);
+
+  if (!stored || stored.expiresAt < new Date() || stored.codeHash !== hashToken(code.trim())) {
+    return res.status(400).json({ message: "Code invalide ou expiré" });
+  }
+
+  try {
+    await prisma.user.updateMany({
+      where: { email: normalizedEmail },
+      data: { emailVerified: true },
+    });
+
+    emailVerificationCodes.delete(normalizedEmail);
+
+    return res.status(200).json({ message: "Email vérifié avec succès" });
+  } catch (error) {
+    console.error("Verify email error", error);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json({ message: "Email invalide" });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      select: { id: true, emailVerified: true },
+    });
+
+    // Réponse identique que l'user existe ou non (sécurité)
+    if (!user || user.emailVerified) {
+      return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé" });
+    }
+
+    const verifyCode = generatePasswordResetCode();
+    emailVerificationCodes.set(email.trim().toLowerCase(), {
+      codeHash: hashToken(verifyCode),
+      expiresAt: new Date(Date.now() + EMAIL_VERIFY_CODE_TTL_MS),
+    });
+
+    await sendVerificationEmail(email, verifyCode);
+
+    return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé" });
+  } catch (error) {
+    console.error("Resend verification error", error);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+};

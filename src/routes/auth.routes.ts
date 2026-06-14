@@ -1,15 +1,17 @@
 import { Router } from "express";
 import {
-  register,
-  login,
-  me,
-  updateMe,
-  updateMyPassword,
-  deleteMe,
-  logout,
-  refresh,
-  requestPasswordReset,
-  resetPassword,
+    register,
+    login,
+    me,
+    updateMe,
+    updateMyPassword,
+    deleteMe,
+    logout,
+    refresh,
+    requestPasswordReset,
+    resetPassword,
+    verifyEmail,
+  resendVerificationEmail,
 } from "../controllers/auth.controller";
 
 import { authenticate } from "../middlewares/middleware";
@@ -400,5 +402,67 @@ router.delete("/me", authenticate, deleteMe);
  *         description: Internal server error
  */
 router.post('/logout', authenticate, logout);
+
+/**
+ * @openapi
+ * /api/auth/verify-email:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Vérifier l'email avec le code reçu par mail
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 minLength: 5
+ *                 maxLength: 5
+ *     responses:
+ *       200:
+ *         description: Email vérifié avec succès
+ *       400:
+ *         description: Email/code manquant, invalide ou expiré
+ *       500:
+ *         description: Erreur serveur
+ */
+router.post('/verify-email', publicLimiter, verifyEmail);
+/**
+ * @openapi
+ * /api/auth/resend-verification:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Renvoyer l'email de vérification
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Email envoyé si le compte existe et n'est pas encore vérifié
+ *       400:
+ *         description: Email invalide
+ *       500:
+ *         description: Erreur serveur
+ */
+router.post('/resend-verification', publicLimiter, resendVerificationEmail);
 
 export default router;
