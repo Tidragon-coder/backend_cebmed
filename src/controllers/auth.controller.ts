@@ -4,6 +4,9 @@ import bcrypt from "bcrypt";
 import { prisma } from "../lib/prisma";
 import crypto from "crypto";
 
+import { v4 as uuidv4 } from "uuid";
+import { sendVerificationEmail } from "../services/brevo.service";
+
 const SECRET = process.env.JWT_SECRET;
 const PASSWORD_RESET_CODE_TTL_MS = 10 * 60 * 1000;
 
@@ -125,8 +128,19 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
+    const verifyToken = uuidv4();
+    await prisma.user.update({
+      where: { id: createdUser.id },
+      data: {
+        emailVerifyToken: verifyToken,
+        emailVerifyExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+
+    await sendVerificationEmail(createdUser.email, verifyToken);
+
     return res.status(201).json({
-      message: "User registered successfully",
+      message: "Inscription réussie. Vérifiez votre email pour activer votre compte.",
       user: createdUser,
     });
   } catch (error: unknown) {
@@ -169,6 +183,7 @@ export const login = async (req: Request, res: Response) => {
         isActive: true,
         isPremium: true,
         isAdmin: true,
+        emailVerified: true,
       },
     });
 
@@ -180,6 +195,13 @@ export const login = async (req: Request, res: Response) => {
 
     if (!isValid) {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        message: "Veuillez vérifier votre email avant de vous connecter",
+        code: "EMAIL_NOT_VERIFIED",
+      });
     }
 
     const accessToken = jwt.sign(
@@ -585,3 +607,75 @@ export const deleteMe = async (req: AuthenticatedRequest, res: Response) => {
       return res.status(500).json({ message: 'Erreur serveur' });
     }
   };
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  const { token } = req.query as { token: string };
+
+  if (!token) {
+    return res.status(400).json({ message: "Token manquant" });
+  }
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerifyToken: token,
+        emailVerifyExpires: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Lien invalide ou expiré" });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerifyToken: null,
+        emailVerifyExpires: null,
+      },
+    });
+
+    return res.status(200).json({ message: "Email vérifié avec succès" });
+  } catch (error) {
+    console.error("Verify email error", error);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (typeof email !== "string" || !email.includes("@")) {
+    return res.status(400).json({ message: "Email invalide" });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      select: { id: true, emailVerified: true },
+    });
+
+    // Réponse identique que l'user existe ou non (sécurité)
+    if (!user || user.emailVerified) {
+      return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé" });
+    }
+
+    const verifyToken = uuidv4();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerifyToken: verifyToken,
+        emailVerifyExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+
+    await sendVerificationEmail(email, verifyToken);
+
+    return res.status(200).json({ message: "Si ce compte existe, un email a été envoyé" });
+  } catch (error) {
+    console.error("Resend verification error", error);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+};
