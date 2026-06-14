@@ -406,26 +406,36 @@ router.post('/logout', authenticate, logout);
 /**
  * @openapi
  * /api/auth/verify-email:
- *   get:
+ *   post:
  *     tags:
  *       - Auth
- *     summary: Vérifier l'email avec le token reçu par mail
- *     parameters:
- *       - in: query
- *         name: token
- *         required: true
- *         schema:
- *           type: string
- *         description: Token de vérification envoyé par email
+ *     summary: Vérifier l'email avec le code reçu par mail
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               code:
+ *                 type: string
+ *                 minLength: 5
+ *                 maxLength: 5
  *     responses:
  *       200:
  *         description: Email vérifié avec succès
  *       400:
- *         description: Token manquant, invalide ou expiré
+ *         description: Email/code manquant, invalide ou expiré
  *       500:
  *         description: Erreur serveur
  */
-router.get('/verify-email', publicLimiter, verifyEmail);
+router.post('/verify-email', publicLimiter, verifyEmail);
 /**
  * @openapi
  * /api/auth/resend-verification:

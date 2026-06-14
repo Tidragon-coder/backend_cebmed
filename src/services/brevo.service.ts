@@ -26,20 +26,16 @@ const sendEmail = async (to: string, subject: string, htmlContent: string) => {
   }
 };
 
-export const sendVerificationEmail = async (to: string, token: string) => {
-  const link = `${process.env.APP_URL}/api/auth/verify-email?token=${token}`;
-
+export const sendVerificationEmail = async (to: string, code: string) => {
   await sendEmail(
     to,
-    "Vérifiez votre adresse email — CebMed",
+    "Activez votre compte CebMed",
     `
       <div style="font-family:sans-serif;max-width:500px;margin:auto;">
         <h2 style="color:#e91e8c;">Bienvenue sur CebMed 💊</h2>
-        <p>Confirmez votre adresse email en cliquant ci-dessous :</p>
-        <a href="${link}" style="display:inline-block;padding:12px 24px;background:#e91e8c;color:#fff;border-radius:6px;text-decoration:none;">
-          Vérifier mon email
-        </a>
-        <p style="color:#999;font-size:12px;margin-top:24px;">Ce lien expire dans 24h.</p>
+        <p>Votre code de vérification est :</p>
+        <h1 style="letter-spacing:8px;color:#333;text-align:center;">${code}</h1>
+        <p style="color:#999;font-size:12px;margin-top:24px;">Ce code expire dans 24h.</p>
       </div>
     `
   );
