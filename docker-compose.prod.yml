@@ -20,6 +20,7 @@ services:
       - TZ=Europe/Paris
     volumes:
       - documents_storage:/app/storage/documents
+      - ./firebase-service-account.json:/app/firebase-service-account.json:ro
     restart: unless-stopped
     depends_on:
       migrate:
