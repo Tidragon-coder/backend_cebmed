@@ -2,8 +2,8 @@ import "dotenv/config";
 import { prisma } from "../src/lib/prisma";
 import { sendPushNotification } from "../src/services/notification.service";
 
-// Tolérance ±1min (cron à la minute)
-const TOLERANCE = 1 * 60 * 1000;
+// Tolérance ±5min (cron toutes les 10min)
+const TOLERANCE = 5 * 60 * 1000;
 // Borne max : inutile de regarder les RDV au-delà de 7 jours
 const MAX_LOOKAHEAD_MS = 7 * 24 * 60 * 60 * 1000;
 
