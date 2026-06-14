@@ -20,6 +20,12 @@ model User {
   isAdmin     Boolean   @default(false) @map("is_admin")
   fcmToken    String?   @map("fcm_token") @db.Text
 
+  emailVerified        Boolean   @default(false) @map("email_verified")
+  emailVerifyToken     String?   @map("email_verify_token") @db.VarChar(255)
+  emailVerifyExpires   DateTime? @map("email_verify_expires") @db.Timestamptz(6)
+  passwordResetToken   String?   @map("password_reset_token") @db.VarChar(255)
+  passwordResetExpires DateTime? @map("password_reset_expires") @db.Timestamptz(6)
+
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
