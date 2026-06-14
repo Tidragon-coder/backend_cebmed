@@ -164,6 +164,10 @@ export const redeemCaregiverInvite = async (
       },
     });
 
+    if (existing?.status === "ACCEPTED") {
+      return res.status(409).json({ message: "Profil déjà associé" });
+    }
+
     if (!existing) {
       await prisma.userCaregiver.create({
         data: {
@@ -172,7 +176,7 @@ export const redeemCaregiverInvite = async (
           status: "ACCEPTED",
         },
       });
-    } else if (existing.status !== "ACCEPTED") {
+    } else {
       await prisma.userCaregiver.update({
         where: { id: existing.id },
         data: { status: "ACCEPTED" },
@@ -195,6 +199,26 @@ export const redeemCaregiverInvite = async (
       },
     });
 
+
+    const caregivers = await prisma.userCaregiver.findMany({
+      where: { user_id: userId },
+      select: {
+        id: true,
+        user_id: true,
+        caregiver_id: true,
+        status: true,
+        ...permissionSelect,
+        caregiver: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            picture: true,
+          },
+        },
+      },
+      orderBy: { updated_at: "desc" },
+    });
     return res.status(200).json({
       message: "Invitation acceptee",
       data: updatedInvite,
@@ -266,12 +290,33 @@ export const getMyCaregiverInvites = async (
       orderBy: { updated_at: "desc" },
     });
 
+
+    const caregivers = await prisma.userCaregiver.findMany({
+      where: { user_id: userId },
+      select: {
+        id: true,
+        user_id: true,
+        caregiver_id: true,
+        status: true,
+        ...permissionSelect,
+        caregiver: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            picture: true,
+          },
+        },
+      },
+      orderBy: { updated_at: "desc" },
+    });
     return res.status(200).json({
       created_count: createdInvites.length,
       redeemed_count: redeemedInvites.length,
       created: createdInvites,
       redeemed: redeemedInvites,
       relations,
+      caregivers,
     });
   } catch (error) {
     console.error("Erreur chargement invitations aidant", error);
@@ -310,6 +355,26 @@ export const getCaregiverPermissions = async (
       return res.status(404).json({ message: "Relation aidant introuvable" });
     }
 
+
+    const caregivers = await prisma.userCaregiver.findMany({
+      where: { user_id: userId },
+      select: {
+        id: true,
+        user_id: true,
+        caregiver_id: true,
+        status: true,
+        ...permissionSelect,
+        caregiver: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            picture: true,
+          },
+        },
+      },
+      orderBy: { updated_at: "desc" },
+    });
     return res.status(200).json({ data: relation });
   } catch (error) {
     console.error("Erreur lecture permissions aidant", error);
@@ -359,6 +424,26 @@ export const updateCaregiverPermissions = async (
       },
     });
 
+
+    const caregivers = await prisma.userCaregiver.findMany({
+      where: { user_id: userId },
+      select: {
+        id: true,
+        user_id: true,
+        caregiver_id: true,
+        status: true,
+        ...permissionSelect,
+        caregiver: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            picture: true,
+          },
+        },
+      },
+      orderBy: { updated_at: "desc" },
+    });
     return res.status(200).json({
       message: "Permissions mises a jour",
       data: updated,
@@ -368,4 +453,43 @@ export const updateCaregiverPermissions = async (
     return res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
+export const deleteCaregiverRelation = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const userId = getUserId(req, res);
+  if (!userId) return;
+
+  const relationId = Number(req.params.relationId);
+  if (!Number.isFinite(relationId) || relationId <= 0) {
+    return res.status(400).json({ message: "relationId invalide" });
+  }
+
+  try {
+    const relation = await prisma.userCaregiver.findFirst({
+      where: {
+        OR: [
+          { id: relationId, user_id: userId },
+          { id: relationId, caregiver_id: userId },
+          { user_id: relationId, caregiver_id: userId },
+          { caregiver_id: relationId, user_id: userId },
+        ],
+      },
+      select: { id: true },
+    });
+
+    if (!relation) {
+      return res.status(404).json({ message: "Relation aidant introuvable" });
+    }
+
+    await prisma.userCaregiver.delete({ where: { id: relation.id } });
+
+    return res.status(200).json({ message: "Relation aidant supprimée" });
+  } catch (error) {
+    console.error("Erreur suppression relation aidant", error);
+    return res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
+
+
 
