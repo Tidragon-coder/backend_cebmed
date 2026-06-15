@@ -4,8 +4,8 @@ import { sendPushNotification } from "../src/services/notification.service";
 
 const WINDOW_MINUTES = parseInt(process.env.REMINDER_WINDOW_MINUTES ?? "1", 10);
 
-// Tolérance ±1min (cron à la minute)
-const TOLERANCE        = 1 * 60 * 1000;
+// Tolérance ±3min (cron à la minute)
+const TOLERANCE        = 3 * 60 * 1000;
 const FOLLOW_UP_30_MIN = 30 * 60 * 1000;
 const FOLLOW_UP_60_MIN = 60 * 60 * 1000;
 const FOLLOW_UP_2H     = 120 * 60 * 1000;
