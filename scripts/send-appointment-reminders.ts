@@ -2,10 +2,10 @@ import "dotenv/config";
 import { prisma } from "../src/lib/prisma";
 import { sendPushNotification } from "../src/services/notification.service";
 
-// Tolérance ±5min (cron toutes les 10min)
-const TOLERANCE = 5 * 60 * 1000;
-// Borne max : inutile de regarder les RDV au-delà de 7 jours
-const MAX_LOOKAHEAD_MS = 7 * 24 * 60 * 60 * 1000;
+// Tolérance ±3min (cron toutes les 5min)
+const TOLERANCE = 3 * 60 * 1000;
+// Borne max : 24h
+const MAX_LOOKAHEAD_MS = 24 * 60 * 60 * 1000;
 
 function formatDelay(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
@@ -19,16 +19,17 @@ async function main() {
 
   console.log(`[${now.toISOString()}] Recherche des rappels RDV...`);
 
-  // Récupère tous les RDV avec notification activée et reminder_delay défini,
-  // pas encore notifiés, dont le moment de rappel tombe dans [now-1min, now+1min]
+  const windowStart = new Date(now.getTime() + TOLERANCE);
+  const windowEnd = new Date(now.getTime() + MAX_LOOKAHEAD_MS);
+
   const appointments = await prisma.appointment.findMany({
     where: {
       notifications_enabled: true,
       reminded_at: null,
       reminder_delay: { not: null },
       start_time: {
-        gte: new Date(now.getTime() + TOLERANCE),
-        lte: new Date(now.getTime() + MAX_LOOKAHEAD_MS),
+        gte: windowStart,
+        lte: windowEnd,
       },
     },
     select: {
@@ -43,11 +44,12 @@ async function main() {
     },
   });
 
-  // Filtre côté JS : le moment du rappel (start_time - reminder_delay) doit être dans la fenêtre
   const toNotify = appointments.filter((appt) => {
     const reminderAt = new Date(appt.start_time.getTime() - appt.reminder_delay! * 60 * 1000);
-    return reminderAt >= new Date(now.getTime() - TOLERANCE)
-        && reminderAt <= new Date(now.getTime() + TOLERANCE);
+    return (
+      reminderAt >= new Date(now.getTime() - TOLERANCE) &&
+      reminderAt <= new Date(now.getTime() + TOLERANCE)
+    );
   });
 
   if (toNotify.length === 0) {
@@ -69,11 +71,8 @@ async function main() {
     }
 
     const delayLabel = formatDelay(appt.reminder_delay!);
-
     const title = `📅 Rappel RDV dans ${delayLabel}`;
-    const body = appt.location
-      ? `${appt.title} — ${appt.location}`
-      : appt.title;
+    const body = appt.location ? `${appt.title} — ${appt.location}` : appt.title;
 
     try {
       await sendPushNotification(user.fcmToken, title, body, {
