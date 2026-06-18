@@ -21,7 +21,7 @@ type AuthenticatedRequest = Request & {
   };
 };
 
-const isValidDate = (value: string): boolean => {
+export const isValidDate = (value: string): boolean => {
   const date = new Date(value);
   return !Number.isNaN(date.getTime());
 };
@@ -34,7 +34,7 @@ function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-function isStrongPassword(password: string): boolean {
+export function isStrongPassword(password: string): boolean {
   return password.length >= 8 &&
     /[a-z]/.test(password) &&
     /[A-Z]/.test(password) &&

@@ -12,7 +12,9 @@
     "prisma:verify": "tsx scripts/verify-prisma.ts",
     "reminders:send": "tsx scripts/send-medication-reminders.ts",
     "reminders:appointments": "tsx scripts/send-appointment-reminders.ts",
-    "intakes:missed": "tsx scripts/mark-missed-intakes.ts"
+    "intakes:missed": "tsx scripts/mark-missed-intakes.ts",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -44,11 +46,13 @@
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^11.0.0",
+    "@vitest/coverage-v8": "^4.1.9",
     "nodemon": "^3.1.14",
     "prisma": "^7.8.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
