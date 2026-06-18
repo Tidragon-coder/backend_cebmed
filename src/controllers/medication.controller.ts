@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { prisma } from "../lib/prisma";
+import { prisma as defaultPrisma } from "../lib/prisma";
 
-export const getMedicationsByName = async (req: Request, res: Response) => {
+export const getMedicationsByName = async (req: Request, res: Response, db = defaultPrisma) => {
     const name = req.query.name;
     const limit = req.query.limit;
 
@@ -18,7 +18,7 @@ export const getMedicationsByName = async (req: Request, res: Response) => {
             : 20;
 
     try {
-        const medications = await prisma.medication.findMany({
+        const medications = await db.medication.findMany({
             where: {
                 name: {
                     contains: name.trim(),

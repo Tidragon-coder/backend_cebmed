@@ -1,8 +1,8 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../middlewares/middleware";
-import { prisma } from "../lib/prisma";
+import { prisma as defaultPrisma } from "../lib/prisma";
 
-export async function saveFcmToken(req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function saveFcmToken(req: AuthenticatedRequest, res: Response, db = defaultPrisma): Promise<void> {
   const userId = req.user?.id;
   if (!userId) {
     res.status(401).json({ message: "Non autorisé" });
@@ -15,7 +15,7 @@ export async function saveFcmToken(req: AuthenticatedRequest, res: Response): Pr
     return;
   }
 
-  await prisma.user.update({
+  await db.user.update({
     where: { id: userId },
     data: { fcmToken: token },
   });
